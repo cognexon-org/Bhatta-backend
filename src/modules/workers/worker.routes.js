@@ -1,0 +1,14 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./worker.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.listWorkers);
+router.post('/', permit(roles.ADMIN, roles.MANAGER), [body('name').notEmpty(), body('categoryCode').notEmpty()], validate, controller.createWorker);
+router.get('/:id', permit(roles.ADMIN, roles.MANAGER), controller.getWorker);
+router.patch('/:id', permit(roles.ADMIN, roles.MANAGER), controller.updateWorker);
+router.get('/:id/salary-summary', permit(roles.ADMIN, roles.MANAGER), controller.salarySummary);
+module.exports = router;

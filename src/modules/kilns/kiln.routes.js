@@ -1,0 +1,11 @@
+const router = require('express').Router();
+const controller = require('./kiln.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', controller.listKilns);
+router.get('/:id', controller.getKiln);
+router.post('/', permit(roles.ADMIN), controller.createKiln);
+router.patch('/:id', permit(roles.ADMIN), controller.updateKiln);
+module.exports = router;

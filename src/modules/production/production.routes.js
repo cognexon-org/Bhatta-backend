@@ -1,0 +1,15 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./production.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const { uploadVoiceNote } = require('../../middlewares/uploadMiddleware');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.post('/', permit(roles.ADMIN, roles.MANAGER), [body('productionType').notEmpty(), body('quantity').isNumeric()], validate, controller.createProduction);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.listProduction);
+router.get('/summary', permit(roles.ADMIN, roles.MANAGER), controller.summary);
+router.get('/worker/:workerId', permit(roles.ADMIN, roles.MANAGER), controller.workerReport);
+router.post('/:productionId/voice-remark', permit(roles.ADMIN, roles.MANAGER), uploadVoiceNote.single('voiceNote'), controller.uploadVoiceRemark);
+module.exports = router;

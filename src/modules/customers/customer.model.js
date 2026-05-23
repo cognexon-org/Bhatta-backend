@@ -1,0 +1,4 @@
+const mongoose = require('mongoose');
+const customerSchema = new mongoose.Schema({ name: { type: String, required: true, trim: true }, mobile: { type: String, trim: true }, alternateMobile: String, villageId: { type: mongoose.Schema.Types.ObjectId, ref: 'Village' }, beatName: String, address: String, customerType: { type: String, enum: ['REGULAR', 'NEW', 'LEAD'], default: 'NEW' }, totalOrders: { type: Number, default: 0 }, totalUdhari: { type: Number, default: 0 }, totalPaid: { type: Number, default: 0 }, outstandingAmount: { type: Number, default: 0 }, assignedManagerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, isActive: { type: Boolean, default: true } }, { timestamps: true });
+customerSchema.index({ name: 'text', mobile: 'text', beatName: 'text' });
+module.exports = mongoose.model('Customer', customerSchema);

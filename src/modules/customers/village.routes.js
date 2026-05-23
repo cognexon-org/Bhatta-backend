@@ -1,0 +1,10 @@
+const router = require('express').Router();
+const controller = require('./village.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.listVillages);
+router.post('/', permit(roles.ADMIN), controller.createVillage);
+router.patch('/:id', permit(roles.ADMIN), controller.updateVillage);
+module.exports = router;

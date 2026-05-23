@@ -1,0 +1,17 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./stock.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/categories', permit(roles.ADMIN, roles.MANAGER), controller.listCategories);
+router.post('/categories', permit(roles.ADMIN), [body('name').notEmpty(), body('code').notEmpty()], validate, controller.createCategory);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.listStock);
+router.post('/requests', permit(roles.ADMIN, roles.MANAGER), [body('categoryId').notEmpty(), body('updateType').notEmpty(), body('quantity').isNumeric()], validate, controller.createStockRequest);
+router.get('/requests', permit(roles.ADMIN, roles.MANAGER), controller.listStockRequests);
+router.patch('/requests/:id/approve', permit(roles.ADMIN), controller.approveRequest);
+router.patch('/requests/:id/reject', permit(roles.ADMIN), controller.rejectRequest);
+router.get('/audit-logs', permit(roles.ADMIN), controller.auditLogs);
+module.exports = router;

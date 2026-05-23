@@ -1,0 +1,15 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./attendance.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const { uploadVoiceNote } = require('../../middlewares/uploadMiddleware');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.post('/', permit(roles.ADMIN, roles.MANAGER), [body('entries').isArray({ min: 1 })], validate, controller.markAttendance);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.getDailyAttendance);
+router.get('/category-wise', permit(roles.ADMIN, roles.MANAGER), controller.categoryWiseAttendance);
+router.get('/history', permit(roles.ADMIN, roles.MANAGER), controller.history);
+router.post('/:attendanceId/voice-remark', permit(roles.ADMIN, roles.MANAGER), uploadVoiceNote.single('voiceNote'), controller.uploadVoiceRemark);
+module.exports = router;

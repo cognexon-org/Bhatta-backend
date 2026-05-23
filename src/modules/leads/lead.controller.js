@@ -1,0 +1,11 @@
+const Lead = require('./lead.model');
+const Customer = require('../customers/customer.model');
+const roles = require('../../constants/roles');
+const asyncHandler = require('../../utils/asyncHandler');
+const { success, created, fail } = require('../../utils/apiResponse');
+const { paginate } = require('../../utils/paginate');
+const { t } = require('../../constants/messages');
+exports.createLead = asyncHandler(async (req, res) => { const payload = { ...req.body, assignedManagerId: req.user.role === roles.MANAGER ? req.user._id : (req.body.assignedManagerId || req.user._id) }; const item = await Lead.create(payload); return created(res, t('CREATED', req.lang), item); });
+exports.listLeads = asyncHandler(async (req, res) => { const filter = {}; if (req.user.role === roles.MANAGER) filter.assignedManagerId = req.user._id; ['followUpStatus','villageId'].forEach((k)=>{ if(req.query[k]) filter[k]=req.query[k]; }); if (req.query.search) filter.$or = [{ name: new RegExp(req.query.search, 'i') }, { mobile: new RegExp(req.query.search, 'i') }, { beatName: new RegExp(req.query.search, 'i') }]; const result = await paginate(Lead, filter, req.query, { populate: [{ path: 'villageId' }, { path: 'assignedManagerId', select: 'name mobile' }, { path: 'voiceRemarkId' }] }); return success(res, t('FETCHED', req.lang), result.items, 200, result.meta); });
+exports.updateFollowUp = asyncHandler(async (req, res) => { const item = await Lead.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }); if (!item) return fail(res, t('NOT_FOUND', req.lang), 404); return success(res, t('UPDATED', req.lang), item); });
+exports.convertToCustomer = asyncHandler(async (req, res) => { const lead = await Lead.findById(req.params.id); if (!lead) return fail(res, t('NOT_FOUND', req.lang), 404); const customer = await Customer.create({ name: lead.name, mobile: lead.mobile, villageId: lead.villageId, beatName: lead.beatName, customerType: 'LEAD', assignedManagerId: lead.assignedManagerId, address: req.body.address }); lead.followUpStatus = 'CONVERTED'; await lead.save(); return created(res, t('CREATED', req.lang), { lead, customer }); });

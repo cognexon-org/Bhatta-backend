@@ -1,0 +1,13 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./lead.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.listLeads);
+router.post('/', permit(roles.ADMIN, roles.MANAGER), [body('name').notEmpty()], validate, controller.createLead);
+router.patch('/:id/follow-up', permit(roles.ADMIN, roles.MANAGER), controller.updateFollowUp);
+router.post('/:id/convert-to-customer', permit(roles.ADMIN, roles.MANAGER), controller.convertToCustomer);
+module.exports = router;

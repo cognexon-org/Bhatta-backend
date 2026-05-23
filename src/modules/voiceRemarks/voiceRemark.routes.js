@@ -1,0 +1,11 @@
+const router = require('express').Router();
+const controller = require('./voiceRemark.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const { uploadVoiceNote } = require('../../middlewares/uploadMiddleware');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.list);
+router.post('/', permit(roles.ADMIN, roles.MANAGER), uploadVoiceNote.single('voiceNote'), controller.upload);
+router.get('/:id', permit(roles.ADMIN, roles.MANAGER), controller.get);
+module.exports = router;

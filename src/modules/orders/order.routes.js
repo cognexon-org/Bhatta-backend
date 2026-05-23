@@ -1,0 +1,14 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./order.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.listOrders);
+router.post('/', permit(roles.ADMIN, roles.MANAGER), [body('customerId').notEmpty(), body('items').isArray({ min: 1 })], validate, controller.createOrder);
+router.get('/:id', permit(roles.ADMIN, roles.MANAGER), controller.getOrder);
+router.patch('/:id', permit(roles.ADMIN, roles.MANAGER), controller.updateOrder);
+router.patch('/:id/status', permit(roles.ADMIN, roles.MANAGER), [body('orderStatus').notEmpty()], validate, controller.updateStatus);
+module.exports = router;

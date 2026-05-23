@@ -1,0 +1,11 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./payment.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.listPayments);
+router.post('/', permit(roles.ADMIN, roles.MANAGER), [body('customerId').notEmpty(), body('amount').isNumeric()], validate, controller.createPayment);
+module.exports = router;
