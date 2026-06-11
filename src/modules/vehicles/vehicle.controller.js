@@ -1,0 +1,15 @@
+const Vehicle = require('./vehicle.model');
+const Expense = require('../expenses/expense.model');
+const Dispatch = require('../dispatches/dispatch.model');
+const factory = require('../../utils/crudFactory');
+const asyncHandler = require('../../utils/asyncHandler');
+const { success } = require('../../utils/apiResponse');
+const { paginate } = require('../../utils/paginate');
+const { t } = require('../../constants/messages');
+exports.list = factory.list(Vehicle, ['vehicleType','isActive'], { searchFields: ['vehicleNumber','driverName','ownerName'] });
+exports.get = factory.get(Vehicle);
+exports.create = factory.create(Vehicle);
+exports.update = factory.update(Vehicle);
+exports.deactivate = factory.deactivate(Vehicle);
+exports.expenses = asyncHandler(async(req,res)=>{ const vehicle=await Vehicle.findById(req.params.id); const result=await paginate(Expense,{ description: new RegExp(vehicle ? vehicle.vehicleNumber : req.params.id, 'i') },req.query); return success(res,t('FETCHED',req.lang),result.items,200,result.meta); });
+exports.dispatches = asyncHandler(async(req,res)=>{ const result=await paginate(Dispatch,{ vehicleId:req.params.id },req.query); return success(res,t('FETCHED',req.lang),result.items,200,result.meta); });

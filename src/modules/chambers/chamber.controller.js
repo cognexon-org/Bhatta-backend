@@ -1,0 +1,13 @@
+const Chamber = require('./chamber.model');
+const ProcessEntry = require('../processEntries/processEntry.model');
+const factory = require('../../utils/crudFactory');
+const asyncHandler = require('../../utils/asyncHandler');
+const { success, fail } = require('../../utils/apiResponse');
+const { paginate } = require('../../utils/paginate');
+const { t } = require('../../constants/messages');
+exports.list = factory.list(Chamber, ['kilnId','seasonId','status','isActive'], { populate: [{ path: 'kilnId' }, { path: 'seasonId' }] });
+exports.get = factory.get(Chamber, [{ path: 'kilnId' }, { path: 'seasonId' }]);
+exports.create = factory.create(Chamber);
+exports.update = factory.update(Chamber);
+exports.updateStatus = asyncHandler(async (req, res) => { const item = await Chamber.findByIdAndUpdate(req.params.id, { status: req.body.status, lastProcessDate: new Date() }, { new: true, runValidators: true }); if(!item) return fail(res, t('NOT_FOUND', req.lang), 404); return success(res, t('UPDATED', req.lang), item); });
+exports.history = asyncHandler(async (req, res) => { const result = await paginate(ProcessEntry, { chamberId: req.params.id }, req.query, { populate: [{ path: 'managerId', select: 'name mobile' }] }); return success(res, t('FETCHED', req.lang), result.items, 200, result.meta); });

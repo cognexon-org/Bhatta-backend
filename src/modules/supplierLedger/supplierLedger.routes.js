@@ -1,0 +1,12 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./supplierLedger.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.list);
+router.get('/supplier/:supplierId', permit(roles.ADMIN, roles.MANAGER), controller.bySupplier);
+router.post('/adjustment', permit(roles.ADMIN), [body('supplierId').notEmpty()], validate, controller.adjustment);
+module.exports = router;

@@ -1,0 +1,3851 @@
+MUNIMSARTHI - COMPLETE BRICK KILN / BHATTA ERP BACKEND DOCUMENTATION
+=======================================================================
+
+Project Name: MunimSarthi - Kiln Management Platform
+Proposed By: Cognexon Solutions Pvt. Ltd.
+Document Type: Complete Backend Functional + Technical Documentation
+Backend Stack: Node.js, Express.js, MongoDB, Mongoose, JWT
+Document Version: 1.0
+
+
+TABLE OF CONTENTS
+=================
+
+1. Project Objective
+2. Backend Goals
+3. Recommended Backend Architecture
+4. User Roles and Access Control
+5. Complete ERP Module List
+6. Brick Kiln Business Flow
+7. Master Data Modules
+8. Worker and Labor Management
+9. Attendance Module
+10. Worker Ledger, Peshgi, and Payroll
+11. Brick Production Process Module
+12. Brick Categories and Stock Management
+13. Stock Ledger Module
+14. Kiln Chamber Management
+15. Coal and Fuel Management
+16. Customer and Village Management
+17. Order Management
+18. Dispatch and Challan Management
+19. Udhari and Customer Ledger
+20. Payment Collection Module
+21. Expense Management
+22. Supplier and Purchase Management
+23. Vehicle Management
+24. Cashbook and Finance Module
+25. Lead and Follow-up Module
+26. Voice Remark Module
+27. Notification and Reminder Module
+28. Dashboard Module
+29. Reports Module
+30. Activity Logs and Audit Trail
+31. Multi-language Support
+32. File Upload and Storage
+33. API Response Standards
+34. API Endpoint Documentation
+35. Database Model Documentation
+36. Business Validations
+37. Transaction Safety Requirements
+38. Security Requirements
+39. Environment Variables
+40. Cron Jobs
+41. Seed Data
+42. Phase-wise Implementation Plan
+43. Final Backend Acceptance Checklist
+
+
+1. PROJECT OBJECTIVE
+====================
+
+MunimSarthi is a complete Brick Kiln / Bhatta ERP backend system designed to manage the full operational and financial lifecycle of a brick manufacturing business.
+
+The ERP should support:
+
+- Admin Web Panel
+- Manager / Munshi Mobile App
+- Multi-kiln management
+- Multi-season accounting
+- Worker and attendance management
+- Worker peshgi / advance tracking
+- Worker ledger and salary calculation
+- Brick production process tracking
+- Brick stage-wise and quality-wise stock
+- Chamber-wise kiln operations
+- Coal and fuel purchase/consumption
+- Customer, village, beat, and ledger management
+- Orders, dispatches, challans, and invoices
+- Udhari / credit management
+- Payment collection and due reminders
+- Expense, purchase, supplier, and cashbook management
+- Owner dashboard and reports
+- Voice remarks by managers
+- Hindi and English support
+- Complete activity logs and approval workflows
+
+
+2. BACKEND GOALS
+================
+
+The backend must solve real daily problems of brick kiln owners and managers:
+
+1. How many raw bricks were made today?
+2. How many bricks are drying?
+3. How many bricks were loaded into the kiln?
+4. Which chamber is loaded, firing, cooling, or ready for nikasi?
+5. How much coal was consumed?
+6. How many finished bricks are available by quality?
+7. How much work did each worker do?
+8. How much peshgi / advance has each worker taken?
+9. How much salary/payment is due to each worker?
+10. Which customers owe money?
+11. Which payments are due today or overdue?
+12. How many bricks were dispatched?
+13. What are today's expenses?
+14. What is the current stock?
+15. What is the estimated profit/loss for the season?
+
+The backend must be ledger-driven, audit-friendly, and safe for financial and stock operations.
+
+
+3. RECOMMENDED BACKEND ARCHITECTURE
+===================================
+
+Recommended technology stack:
+
+- Runtime: Node.js
+- Framework: Express.js
+- Database: MongoDB
+- ODM: Mongoose
+- Authentication: JWT
+- Password Hashing: bcryptjs
+- File Upload: multer
+- Notification: Firebase Cloud Messaging / SMS / WhatsApp provider
+- Cron Jobs: node-cron
+- Storage: Local during development, cloud storage in production
+
+Recommended folder structure:
+
+src/
+  app.js
+  server.js
+  routes.js
+
+  config/
+    db.js
+    jwt.js
+    firebase.js
+    sms.js
+    storage.js
+
+  constants/
+    roles.js
+    enums.js
+    messages.js
+
+  middlewares/
+    authMiddleware.js
+    roleMiddleware.js
+    validateRequest.js
+    errorMiddleware.js
+    languageMiddleware.js
+    uploadMiddleware.js
+
+  utils/
+    apiResponse.js
+    asyncHandler.js
+    paginate.js
+    dateHelper.js
+    generateCode.js
+    auditLogger.js
+    ledgerHelper.js
+
+  modules/
+    auth/
+    users/
+    kilns/
+    seasons/
+    villages/
+    workers/
+    workerCategories/
+    attendance/
+    workerLedger/
+    payroll/
+    brickCategories/
+    processes/
+    processEntries/
+    chambers/
+    stock/
+    stockLedger/
+    fuel/
+    customers/
+    leads/
+    orders/
+    dispatches/
+    challans/
+    invoices/
+    udhari/
+    payments/
+    customerLedger/
+    suppliers/
+    purchases/
+    supplierLedger/
+    expenses/
+    vehicles/
+    cashbook/
+    reports/
+    dashboard/
+    voiceRemarks/
+    notifications/
+    logs/
+    constants/
+
+  jobs/
+    duePaymentReminder.job.js
+    followUpReminder.job.js
+    dailySummary.job.js
+    lowFuelAlert.job.js
+    lowStockAlert.job.js
+    pendingApprovalReminder.job.js
+    workerPaymentSummary.job.js
+
+
+4. USER ROLES AND ACCESS CONTROL
+================================
+
+4.1 Roles
+
+ADMIN
+- Full control over system.
+- Can create kilns, seasons, managers, workers, categories, chambers, approvals, reports, and all financial entries.
+- Can approve/reject stock corrections, expenses, process corrections, and sensitive changes.
+
+MANAGER / MUNSHI
+- Field user.
+- Can enter attendance, production process entries, worker advances, customer orders, dispatches, payments, expenses, leads, and voice remarks.
+- Can view data only for assigned kiln, assigned villages, assigned workers, and assigned customers.
+- Some actions may require admin approval.
+
+WORKER
+- Optional future login role.
+- Can view own work, attendance, advances, payments, and salary summary.
+- In the MVP, worker may remain only a labor record and not a login user.
+
+4.2 Access Control Rules
+
+- Every protected API must require JWT.
+- Every user must have an active account.
+- Manager can only access assigned kiln data.
+- Manager can only access assigned village/customer/worker data.
+- Admin can access all assigned organization data.
+- Sensitive updates should generate activity logs.
+- Approval APIs should be admin-only.
+- Deleted records should preferably be soft deleted using isActive=false or deletedAt.
+
+
+5. COMPLETE ERP MODULE LIST
+===========================
+
+Core modules required for complete Brick Kiln ERP:
+
+1. Authentication and User Management
+2. Kiln Management
+3. Season Management
+4. Village / Beat Management
+5. Worker Category Management
+6. Worker Management
+7. Attendance Management
+8. Worker Ledger / Peshgi / Payroll
+9. Brick Category Management
+10. Process Master
+11. Process Entry / Production Register
+12. Chamber Management
+13. Stock Management
+14. Stock Ledger
+15. Coal / Fuel Management
+16. Customer Management
+17. Lead and Follow-up Management
+18. Order Management
+19. Dispatch / Challan / Invoice Management
+20. Udhari / Credit Management
+21. Payment Collection
+22. Customer Ledger
+23. Expense Management
+24. Supplier Management
+25. Purchase Management
+26. Supplier Ledger
+27. Vehicle Management
+28. Cashbook / Bankbook / Finance
+29. Reports
+30. Dashboard
+31. Notifications and Reminders
+32. Voice Remarks
+33. Activity Logs / Audit Trail
+34. Constants and Multi-language Support
+
+
+6. BRICK KILN BUSINESS FLOW
+===========================
+
+The backend should follow the real bhatta production lifecycle:
+
+Mitti Khudai
+  ↓
+Raabis / Clay Preparation
+  ↓
+Pathai / Brick Molding
+  ↓
+Kaccha Brick Stock
+  ↓
+Sukhai / Drying
+  ↓
+Sukhi Brick Stock
+  ↓
+Bharai / Kiln Loading
+  ↓
+Chamber Loaded
+  ↓
+Phukai / Firing
+  ↓
+Pakai / Baking
+  ↓
+Cooling
+  ↓
+Nikasi / Unloading
+  ↓
+Chhantai / Quality Sorting
+  ↓
+Finished Stock
+  ↓
+Order
+  ↓
+Dispatch / Challan
+  ↓
+Payment / Udhari / Customer Ledger
+
+Backend principle:
+
+Each major process must create proper records and ledger effects.
+
+Examples:
+
+- Pathai adds Kaccha Eent stock.
+- Sukhai transfers Kaccha Eent to Sukhi Eent.
+- Bharai moves Sukhi Eent into chamber.
+- Phukai records coal/fuel consumption.
+- Nikasi removes fired bricks from chamber.
+- Chhantai splits bricks into No.1, No.2, No.3, Jhama, Broken, etc.
+- Dispatch reduces finished stock.
+- Payment updates customer ledger and cashbook.
+- Worker work creates worker ledger earning.
+- Worker advance/payment updates worker ledger and cashbook.
+
+
+7. MASTER DATA MODULES
+======================
+
+7.1 Kiln Master
+
+Purpose:
+Stores each brick kiln/bhatta business unit.
+
+Important fields:
+
+- kilnId
+- kilnName
+- ownerName
+- mobile
+- alternateMobile
+- address
+- village
+- district
+- state
+- pincode
+- gstNo
+- licenseNo
+- kilnType
+- numberOfChambers
+- isActive
+- createdBy
+- createdAt
+- updatedAt
+
+Kiln type examples:
+
+- FIXED_CHIMNEY
+- ZIGZAG
+- CLAMP
+- OTHER
+
+
+7.2 Season Master
+
+Purpose:
+Brick kiln businesses often operate season-wise. Production, stock, worker accounts, expenses, sales, and profit/loss should be linked to a season.
+
+Important fields:
+
+- seasonId
+- kilnId
+- seasonName
+- startDate
+- endDate
+- openingStockDate
+- status
+- isDefault
+- createdBy
+- createdAt
+- updatedAt
+
+Status values:
+
+- UPCOMING
+- ACTIVE
+- CLOSED
+
+Business rules:
+
+- Only one active default season per kiln.
+- New production, stock, sales, and expense entries should be linked to active season.
+- Closed season should not allow new operational entries except admin corrections.
+
+
+7.3 Worker Category Master
+
+Purpose:
+Defines labor categories.
+
+Default categories:
+
+- ETH_PATHAI
+- RAABIS
+- KACCHA_NIKASI
+- SUKHAI
+- BHARAI
+- PHUKAI
+- PAKAI
+- NIKASI
+- CHHANTAI
+- KOYLE
+- COAL_FEEDING
+- LOADING
+- MITTI_KHUDAI
+- TRACTOR_DRIVER
+- JCB_OPERATOR
+- MUNSHI
+- CHOWKIDAR
+- OTHER
+
+Important fields:
+
+- categoryId
+- code
+- name
+- nameHindi
+- defaultSalaryType
+- defaultRate
+- unit
+- isProductionLinked
+- isActive
+- sortOrder
+
+Salary type values:
+
+- DAILY
+- MONTHLY
+- PIECE_RATE
+- TRIP_BASED
+- HOURLY
+
+Unit values:
+
+- DAY
+- MONTH
+- PER_1000
+- TRIP
+- HOUR
+
+
+7.4 Brick Category Master
+
+Purpose:
+Defines stock stages and saleable brick qualities.
+
+Default brick categories:
+
+- KACCHA_EENT
+- SUKHI_EENT
+- SEEDHA_MANJAL
+- TEDHA_MANJAL
+- PAKKA_EENT
+- NO_1
+- NO_2
+- NO_3
+- JHAMA
+- BROKEN
+- CHHATTA
+- OTHER
+
+Important fields:
+
+- categoryId
+- code
+- name
+- nameHindi
+- categoryGroup
+- saleable
+- allowDispatch
+- description
+- sortOrder
+- isActive
+
+Category group values:
+
+- RAW
+- SEMI_PROCESSED
+- FINISHED
+- WASTE
+
+Example mapping:
+
+KACCHA_EENT:
+- group: RAW
+- saleable: false
+
+SUKHI_EENT:
+- group: RAW
+- saleable: false
+
+SEEDHA_MANJAL:
+- group: SEMI_PROCESSED
+- saleable: false or configurable
+
+TEDHA_MANJAL:
+- group: SEMI_PROCESSED
+- saleable: false or configurable
+
+NO_1:
+- group: FINISHED
+- saleable: true
+
+NO_2:
+- group: FINISHED
+- saleable: true
+
+NO_3:
+- group: FINISHED
+- saleable: true
+
+JHAMA:
+- group: WASTE or FINISHED
+- saleable: true
+
+BROKEN:
+- group: WASTE
+- saleable: true
+
+
+7.5 Process Master
+
+Purpose:
+Defines the production process flow.
+
+Default processes:
+
+- MITTI_KHUDAI
+- RAABIS
+- PATHAI
+- KACCHA_NIKASI
+- SUKHAI
+- BHARAI
+- PHUKAI
+- PAKAI
+- NIKASI
+- CHHANTAI
+- STOCK_TRANSFER
+- DISPATCH
+
+Important fields:
+
+- processId
+- code
+- name
+- nameHindi
+- sequenceNo
+- inputCategoryCodes
+- outputCategoryCodes
+- requiresChamber
+- requiresWorkers
+- requiresFuel
+- affectsStock
+- isActive
+- sortOrder
+
+Example:
+
+PATHAI:
+- inputCategoryCodes: []
+- outputCategoryCodes: [KACCHA_EENT]
+- requiresWorkers: true
+- requiresChamber: false
+- requiresFuel: false
+- affectsStock: true
+
+BHARAI:
+- inputCategoryCodes: [SUKHI_EENT]
+- outputCategoryCodes: []
+- requiresWorkers: true
+- requiresChamber: true
+- requiresFuel: false
+- affectsStock: true
+
+PHUKAI:
+- inputCategoryCodes: []
+- outputCategoryCodes: []
+- requiresWorkers: true
+- requiresChamber: true
+- requiresFuel: true
+- affectsStock: false
+
+CHHANTAI:
+- inputCategoryCodes: []
+- outputCategoryCodes: [NO_1, NO_2, NO_3, JHAMA, BROKEN]
+- requiresWorkers: true
+- requiresChamber: true
+- requiresFuel: false
+- affectsStock: true
+
+
+7.6 Expense Category Master
+
+Default categories:
+
+- LABOR
+- PATHAI
+- BHARAI
+- NIKASI
+- FUEL
+- COAL
+- DIESEL
+- VEHICLE
+- REPAIR
+- OFFICE
+- ELECTRICITY
+- INTERNET
+- FOOD
+- SECURITY
+- MISCELLANEOUS
+
+Important fields:
+
+- categoryId
+- code
+- name
+- nameHindi
+- requiresApproval
+- approvalLimitAmount
+- isActive
+- sortOrder
+
+
+7.7 Fuel Type Master
+
+Default fuel types:
+
+- COAL
+- BIOMASS
+- PET_COKE
+- WOOD
+- DIESEL
+
+Important fields:
+
+- fuelTypeId
+- code
+- name
+- nameHindi
+- unit
+- isActive
+
+Unit values:
+
+- KG
+- QUINTAL
+- TON
+- BAG
+- LITER
+
+
+8. WORKER AND LABOR MANAGEMENT
+==============================
+
+Purpose:
+Manage all laborers working in the kiln.
+
+Features:
+
+- Worker registration
+- Category assignment
+- Manager/kiln assignment
+- Village and address details
+- Aadhaar and mobile record
+- Team/jodi management
+- Salary type configuration
+- Worker attendance history
+- Worker process contribution
+- Worker advance / peshgi tracking
+- Worker payment tracking
+- Worker ledger statement
+- Worker current balance
+- Worker deactivation
+
+Important fields:
+
+- workerId
+- kilnId
+- seasonId
+- assignedManagerId
+- name
+- mobile
+- alternateMobile
+- aadhaarNo
+- address
+- village
+- categoryCode
+- teamName
+- jodiName
+- salaryType
+- dailyWage
+- monthlySalary
+- pieceRate
+- openingAdvance
+- currentBalance
+- joiningDate
+- isActive
+- createdBy
+- createdAt
+- updatedAt
+
+Business rules:
+
+- Worker mobile can be optional because many laborers may not have individual mobile numbers.
+- Aadhaar should be optional but unique if provided.
+- Manager can create/update only assigned workers.
+- Inactive workers should not appear in daily process entry dropdowns by default.
+- Worker balance should be derived from WorkerLedger, not manually edited.
+- Any correction in worker balance should happen using an adjustment ledger entry.
+
+
+9. ATTENDANCE MODULE
+====================
+
+Purpose:
+Track daily attendance of workers.
+
+Features:
+
+- Daily attendance marking
+- Category-wise attendance
+- Present / absent / half-day / late
+- Late remark
+- Voice remark
+- Attendance history
+- Manager-wise attendance
+- Worker-wise attendance report
+- Daily wage salary calculation
+
+Important fields:
+
+- attendanceId
+- kilnId
+- seasonId
+- workerId
+- managerId
+- date
+- status
+- categoryCode
+- checkInTime
+- checkOutTime
+- lateRemark
+- textRemark
+- voiceRemarkId
+- salaryAmountForDay
+- createdBy
+- createdAt
+- updatedAt
+
+Attendance status:
+
+- PRESENT
+- ABSENT
+- HALF_DAY
+- LATE
+
+Business rules:
+
+- One worker should have only one attendance record per date.
+- Manager can mark attendance only for assigned workers.
+- Attendance can optionally create worker ledger earning for daily wage workers.
+- Half-day should calculate half salary.
+- Late should allow remark.
+- Voice remark should be optional.
+- Attendance should be editable only by manager on same day or by admin later.
+
+
+10. WORKER LEDGER, PESHGI, AND PAYROLL
+======================================
+
+Purpose:
+Track worker earnings, advances, payments, deductions, and final payable balance.
+
+This is one of the most important modules for a bhatta ERP.
+
+10.1 Worker Ledger
+
+Transaction types:
+
+- EARNING
+- ADVANCE
+- PAYMENT
+- DEDUCTION
+- ADJUSTMENT
+- OPENING_BALANCE
+
+Important fields:
+
+- ledgerId
+- workerId
+- kilnId
+- seasonId
+- managerId
+- date
+- transactionType
+- sourceModule
+- sourceId
+- processCode
+- quantity
+- unit
+- rate
+- amount
+- debit
+- credit
+- balanceAfter
+- paymentMode
+- referenceNo
+- remark
+- voiceRemarkId
+- createdBy
+- createdAt
+
+Recommended accounting logic:
+
+- EARNING increases payable amount to worker.
+- ADVANCE reduces payable amount or increases recoverable balance.
+- PAYMENT reduces payable amount.
+- DEDUCTION reduces payable amount.
+- ADJUSTMENT can increase or decrease balance depending on correction.
+
+Example ledger:
+
+Opening balance:       0
+Pathai earning:        + 2,000
+Peshgi advance:        - 1,000
+Cash payment:          -   500
+Remaining payable:       500
+
+10.2 Peshgi / Advance
+
+Features:
+
+- Add worker advance
+- Reason for advance
+- Payment mode
+- Voice remark
+- Advance report
+- Manager-wise peshgi report
+
+Business rules:
+
+- Advance must create WorkerLedger entry.
+- Advance must create Cashbook expense/outflow entry.
+- Advance amount must be positive.
+- Advance should be linked to active season.
+
+10.3 Worker Payment
+
+Features:
+
+- Pay worker balance
+- Partial payment
+- Full settlement
+- Payment slip
+- Payment history
+
+Business rules:
+
+- Payment must create WorkerLedger entry.
+- Payment must create Cashbook transaction.
+- Payment cannot be zero or negative.
+- Admin may allow overpayment only with permission.
+
+10.4 Payroll
+
+Features:
+
+- Worker salary summary
+- Category-wise salary
+- Piece-rate calculation
+- Daily wage calculation
+- Monthly salary calculation
+- Payslip generation
+- Worker-wise payable report
+
+Payroll should be calculated from:
+
+- Attendance
+- Process contribution
+- WorkerLedger
+- Advances
+- Payments
+- Deductions
+
+
+11. BRICK PRODUCTION PROCESS MODULE
+===================================
+
+Purpose:
+Replace simple production tracking with process-wise production registers.
+
+Main processes:
+
+1. Mitti Khudai
+2. Raabis / Clay Preparation
+3. Pathai / Brick Molding
+4. Kaccha Nikasi
+5. Sukhai
+6. Bharai
+7. Phukai
+8. Pakai
+9. Nikasi
+10. Chhantai
+11. Stock Transfer
+12. Dispatch
+
+11.1 ProcessEntry Model
+
+Important fields:
+
+- processEntryId
+- kilnId
+- seasonId
+- managerId
+- date
+- processCode
+- fromStockCategoryId
+- fromCategoryCode
+- toStockCategoryId
+- toCategoryCode
+- quantityIn
+- quantityOut
+- wastageQuantity
+- chamberId
+- outputs
+- workerContributions
+- fuelConsumptionIds
+- approvalStatus
+- approvedBy
+- approvedAt
+- rejectionReason
+- textRemark
+- voiceRemarkId
+- createdBy
+- updatedBy
+- createdAt
+- updatedAt
+
+Worker contribution fields:
+
+- workerId
+- categoryCode
+- quantity
+- unit
+- rate
+- amount
+- remark
+
+Output fields for Chhantai:
+
+- categoryCode
+- stockCategoryId
+- quantity
+
+Approval status:
+
+- PENDING
+- APPROVED
+- REJECTED
+- NOT_REQUIRED
+
+11.2 Pathai Entry
+
+Purpose:
+Record raw brick molding.
+
+Input:
+- Worker/jodi
+- Quantity molded
+- Rate per 1000
+- Date
+- Remark
+
+Stock effect:
+- Add quantity to KACCHA_EENT stock.
+
+Worker effect:
+- Create WorkerLedger EARNING.
+
+11.3 Raabis Entry
+
+Purpose:
+Track clay preparation.
+
+Input:
+- Soil quantity
+- Water usage
+- Labor used
+- Area/location
+- Remark
+
+Stock effect:
+- Optional, depending on business.
+- Can track prepared clay but not mandatory in MVP.
+
+11.4 Sukhai Entry
+
+Purpose:
+Move raw bricks into dried brick stage.
+
+Input:
+- Quantity taken from Kaccha Eent
+- Quantity dried
+- Damaged/wastage quantity
+- Date
+
+Stock effect:
+- Reduce KACCHA_EENT
+- Add SUKHI_EENT
+- Add wastage if tracked
+
+11.5 Bharai Entry
+
+Purpose:
+Load dried bricks into kiln chamber.
+
+Input:
+- Chamber
+- Quantity
+- Workers
+- Date
+
+Stock effect:
+- Reduce SUKHI_EENT
+- Increase chamber current quantity
+
+Chamber effect:
+- EMPTY -> LOADING
+- LOADING -> LOADED when capacity reached or marked completed
+
+Worker effect:
+- Create WorkerLedger EARNING
+
+11.6 Phukai Entry
+
+Purpose:
+Record firing process and coal/fuel consumption.
+
+Input:
+- Chamber
+- Start date/time
+- End date/time
+- Coal/fuel used
+- Workers
+- Remark
+
+Fuel effect:
+- Reduce FuelStock
+- Create FuelConsumption record
+
+Chamber effect:
+- LOADED -> FIRING
+- FIRING -> COOLING after firing completed
+
+Worker effect:
+- Create WorkerLedger EARNING if applicable
+
+11.7 Pakai Entry
+
+Purpose:
+Track baking progress after firing.
+
+Input:
+- Chamber
+- Date
+- Status
+- Remark
+
+Chamber effect:
+- FIRING or COOLING status update
+
+11.8 Nikasi Entry
+
+Purpose:
+Unload fired bricks from kiln chamber.
+
+Input:
+- Chamber
+- Quantity unloaded
+- Workers
+- Date
+- Remark
+
+Chamber effect:
+- READY_FOR_NIKASI -> COMPLETED or EMPTY depending on workflow
+
+Worker effect:
+- Create WorkerLedger EARNING
+
+11.9 Chhantai Entry
+
+Purpose:
+Quality sorting after nikasi.
+
+Input:
+- Chamber
+- Total quantity
+- Quality-wise split:
+  - NO_1
+  - NO_2
+  - NO_3
+  - JHAMA
+  - BROKEN
+  - CHHATTA
+  - OTHER
+
+Stock effect:
+- Add finished stock by category.
+
+Business rule:
+- Sum of quality output should not exceed input quantity unless admin override is allowed.
+- Difference should be treated as wastage.
+
+
+12. BRICK CATEGORIES AND STOCK MANAGEMENT
+=========================================
+
+Purpose:
+Maintain current stock by brick category/stage.
+
+Stock categories:
+
+- KACCHA_EENT
+- SUKHI_EENT
+- SEEDHA_MANJAL
+- TEDHA_MANJAL
+- PAKKA_EENT
+- NO_1
+- NO_2
+- NO_3
+- JHAMA
+- BROKEN
+- CHHATTA
+- OTHER
+
+12.1 Stock Balance
+
+Important fields:
+
+- stockId
+- kilnId
+- seasonId
+- categoryId
+- categoryCode
+- availableQuantity
+- reservedQuantity
+- damagedQuantity
+- lastUpdatedBy
+- createdAt
+- updatedAt
+
+Business rules:
+
+- Stock balance is current quantity only.
+- Every change must create StockLedger.
+- Available stock cannot go negative.
+- Dispatch can only happen from saleable stock.
+- Stock correction should require admin approval.
+
+
+13. STOCK LEDGER MODULE
+=======================
+
+Purpose:
+Maintain full traceability of every stock movement.
+
+Transaction types:
+
+- ADD
+- REDUCE
+- TRANSFER
+- CORRECTION
+- RESERVE
+- RELEASE
+- DAMAGE
+- RETURN
+
+Important fields:
+
+- stockLedgerId
+- kilnId
+- seasonId
+- date
+- transactionType
+- fromCategoryId
+- fromCategoryCode
+- toCategoryId
+- toCategoryCode
+- quantity
+- sourceModule
+- sourceId
+- previousQuantity
+- newQuantity
+- approvalStatus
+- createdBy
+- approvedBy
+- remark
+- createdAt
+
+Examples:
+
+Pathai:
+- ADD KACCHA_EENT
+
+Sukhai:
+- TRANSFER KACCHA_EENT to SUKHI_EENT
+
+Bharai:
+- REDUCE SUKHI_EENT
+- Increase chamber current quantity
+
+Chhantai:
+- ADD NO_1
+- ADD NO_2
+- ADD NO_3
+- ADD JHAMA
+- ADD BROKEN
+
+Dispatch:
+- REDUCE saleable finished stock
+
+Business rules:
+
+- StockLedger cannot be deleted.
+- Corrections should be separate ledger entries.
+- For every stock balance change, previousQuantity and newQuantity should be recorded.
+- Use MongoDB transaction for all stock-affecting operations.
+
+
+14. KILN CHAMBER MANAGEMENT
+===========================
+
+Purpose:
+Manage chamber-wise operations for zigzag or chamber-based kilns.
+
+Chamber statuses:
+
+- EMPTY
+- LOADING
+- LOADED
+- FIRING
+- COOLING
+- READY_FOR_NIKASI
+- COMPLETED
+- MAINTENANCE
+
+Important fields:
+
+- chamberId
+- kilnId
+- seasonId
+- chamberNo
+- chamberName
+- capacity
+- currentQuantity
+- status
+- lastProcessEntryId
+- lastProcessDate
+- isActive
+- createdAt
+- updatedAt
+
+Business rules:
+
+- Chamber number should be unique per kiln.
+- Cannot start Phukai unless chamber status is LOADED.
+- Cannot do Nikasi unless chamber status is READY_FOR_NIKASI.
+- Cannot overfill chamber beyond capacity unless admin override is enabled.
+- Chamber status should update automatically from process entries.
+- Chamber history should be available.
+
+
+15. COAL AND FUEL MANAGEMENT
+============================
+
+Purpose:
+Track fuel purchase, stock, consumption, and cost per brick.
+
+15.1 Fuel Type
+
+Examples:
+
+- COAL
+- BIOMASS
+- PET_COKE
+- WOOD
+- DIESEL
+
+15.2 Fuel Purchase
+
+Important fields:
+
+- fuelPurchaseId
+- kilnId
+- seasonId
+- supplierId
+- fuelTypeId
+- date
+- quantity
+- unit
+- rate
+- totalAmount
+- paidAmount
+- dueAmount
+- vehicleNumber
+- billNo
+- billImage
+- remark
+- createdBy
+- createdAt
+
+Stock effect:
+- Increase FuelStock.
+
+Cashbook effect:
+- If paidAmount > 0, create CashTransaction.
+
+Supplier effect:
+- Create SupplierLedger.
+
+15.3 Fuel Stock
+
+Important fields:
+
+- fuelStockId
+- kilnId
+- seasonId
+- fuelTypeId
+- availableQuantity
+- averageRate
+- lastUpdatedBy
+- updatedAt
+
+15.4 Fuel Consumption
+
+Important fields:
+
+- fuelConsumptionId
+- kilnId
+- seasonId
+- processEntryId
+- chamberId
+- fuelTypeId
+- date
+- quantity
+- estimatedCost
+- consumedBy
+- remark
+- createdAt
+
+Business rules:
+
+- Fuel consumption cannot exceed available fuel stock.
+- Phukai can create fuel consumption automatically.
+- Fuel cost should be used in profit/loss reports.
+- Coal consumed per 1000 bricks should be reportable.
+
+
+16. CUSTOMER AND VILLAGE MANAGEMENT
+===================================
+
+16.1 Village / Beat
+
+Purpose:
+Manage village-wise and beat-wise customers.
+
+Important fields:
+
+- villageId
+- name
+- nameHindi
+- beatName
+- district
+- state
+- assignedManagerId
+- isActive
+
+16.2 Customer
+
+Purpose:
+Manage buyers, dealers, and credit customers.
+
+Important fields:
+
+- customerId
+- kilnId
+- assignedManagerId
+- name
+- mobile
+- alternateMobile
+- villageId
+- beatName
+- address
+- customerType
+- gstNo
+- openingBalance
+- creditLimit
+- outstandingAmount
+- totalOrders
+- totalPurchased
+- totalPaid
+- isActive
+- createdBy
+- createdAt
+- updatedAt
+
+Customer type values:
+
+- RETAIL
+- WHOLESALE
+- DEALER
+- CONTRACTOR
+- OTHER
+
+Business rules:
+
+- Customer mobile should be unique if provided.
+- Customer outstanding should be calculated from CustomerLedger.
+- Manager can access only assigned customers/villages.
+- Opening balance should create CustomerLedger opening transaction.
+
+
+17. ORDER MANAGEMENT
+====================
+
+Purpose:
+Record customer brick orders.
+
+Important fields:
+
+- orderId
+- orderNo
+- kilnId
+- seasonId
+- customerId
+- villageId
+- managerId
+- orderDate
+- expectedDeliveryDate
+- deliveryAddress
+- items
+- totalQuantity
+- totalAmount
+- paidAmount
+- udhariAmount
+- orderStatus
+- textRemark
+- voiceRemarkId
+- createdBy
+- createdAt
+- updatedAt
+
+Order item fields:
+
+- stockCategoryId
+- categoryCode
+- quantity
+- ratePerThousand
+- amount
+
+Order status values:
+
+- PENDING
+- CONFIRMED
+- PARTIAL_DISPATCHED
+- DISPATCHED
+- DELIVERED
+- CANCELLED
+
+Business rules:
+
+- Order should not always reduce stock directly.
+- Final stock reduction should happen through Dispatch.
+- One order can have multiple dispatches.
+- Order quantity should be tracked against dispatched quantity.
+- Advance payment should create Payment and CustomerLedger.
+- Unpaid amount should create Udhari if sale is confirmed.
+
+
+18. DISPATCH AND CHALLAN MANAGEMENT
+===================================
+
+Purpose:
+Record actual brick loading and delivery.
+
+Important fields:
+
+- dispatchId
+- dispatchNo
+- orderId
+- customerId
+- kilnId
+- seasonId
+- dispatchDate
+- items
+- totalQuantity
+- totalAmount
+- vehicleId
+- vehicleNumber
+- driverName
+- driverMobile
+- loadingWorkerIds
+- challanNo
+- invoiceNo
+- deliveryStatus
+- textRemark
+- voiceRemarkId
+- createdBy
+- createdAt
+- updatedAt
+
+Dispatch item fields:
+
+- stockCategoryId
+- categoryCode
+- quantity
+- ratePerThousand
+- amount
+
+Delivery status values:
+
+- LOADING
+- DISPATCHED
+- DELIVERED
+- RETURNED
+- CANCELLED
+
+Business rules:
+
+- Dispatch reduces finished saleable stock.
+- Dispatch cannot exceed order pending quantity.
+- Dispatch cannot exceed available stock.
+- Dispatch should update order dispatched quantity.
+- Dispatch should create StockLedger REDUCE entries.
+- Dispatch should create customer ledger sale entry if sale is recognized at dispatch.
+- Challan number should be unique per kiln/season.
+- Cancelled dispatch should reverse stock through ledger, not direct delete.
+
+
+19. UDHARI AND CUSTOMER LEDGER
+==============================
+
+19.1 Udhari
+
+Purpose:
+Track customer credit and due payments.
+
+Important fields:
+
+- udhariId
+- customerId
+- villageId
+- managerId
+- kilnId
+- seasonId
+- orderId
+- dispatchId
+- amount
+- pendingAmount
+- paidAmount
+- udhariDate
+- dueDate
+- reason
+- status
+- reminderEnabled
+- reminderDaysBefore
+- textRemark
+- voiceRemarkId
+- createdBy
+- createdAt
+- updatedAt
+
+Status values:
+
+- PENDING
+- PARTIAL_PAID
+- PAID
+- OVERDUE
+- CANCELLED
+
+Business rules:
+
+- Udhari pending amount should reduce after payment.
+- Full payment should mark udhari as PAID.
+- Partial payment should mark udhari as PARTIAL_PAID.
+- Due date reminders should notify manager/admin.
+- Overdue job should mark unpaid due records as OVERDUE.
+
+
+19.2 Customer Ledger
+
+Purpose:
+Maintain full customer account statement.
+
+Transaction types:
+
+- OPENING_BALANCE
+- SALE
+- PAYMENT
+- UDHARI
+- RETURN
+- DISCOUNT
+- ADJUSTMENT
+
+Important fields:
+
+- customerLedgerId
+- customerId
+- kilnId
+- seasonId
+- date
+- transactionType
+- sourceModule
+- sourceId
+- debit
+- credit
+- balanceAfter
+- remark
+- createdBy
+- createdAt
+
+Ledger rules:
+
+- Sale creates debit.
+- Payment creates credit.
+- Return creates credit or adjustment.
+- Opening due creates debit.
+- Customer outstanding should match latest balanceAfter.
+
+
+20. PAYMENT COLLECTION MODULE
+=============================
+
+Purpose:
+Record payments received from customers.
+
+Important fields:
+
+- paymentId
+- customerId
+- udhariId
+- orderId
+- dispatchId
+- kilnId
+- seasonId
+- amount
+- paymentMode
+- paymentDate
+- receivedBy
+- referenceNo
+- textRemark
+- voiceRemarkId
+- createdBy
+- createdAt
+
+Payment modes:
+
+- CASH
+- UPI
+- BANK_TRANSFER
+- CHEQUE
+- OTHER
+
+Business rules:
+
+- Payment amount must be positive.
+- Payment should update Udhari if linked.
+- Payment should create CustomerLedger credit.
+- Payment should create CashTransaction income.
+- Payment should update customer outstanding.
+- Payment should generate receipt data.
+- Overpayment should require admin permission.
+
+
+21. EXPENSE MANAGEMENT
+======================
+
+Purpose:
+Track daily expenses and business costs.
+
+Important fields:
+
+- expenseId
+- kilnId
+- seasonId
+- managerId
+- date
+- categoryCode
+- amount
+- paymentMode
+- paidTo
+- description
+- billImage
+- approvalStatus
+- approvedBy
+- approvedAt
+- rejectionReason
+- voiceRemarkId
+- createdBy
+- createdAt
+- updatedAt
+
+Approval status:
+
+- PENDING
+- APPROVED
+- REJECTED
+- NOT_REQUIRED
+
+Business rules:
+
+- Amount must be positive.
+- High-value expenses can require admin approval.
+- Approved expenses should create CashTransaction expense.
+- Rejected expenses should not affect cashbook.
+- Expense correction should create activity log.
+
+
+22. SUPPLIER AND PURCHASE MANAGEMENT
+====================================
+
+22.1 Supplier
+
+Purpose:
+Manage suppliers for coal, diesel, materials, vehicles, and other purchases.
+
+Important fields:
+
+- supplierId
+- name
+- mobile
+- supplierType
+- address
+- gstNo
+- openingBalance
+- outstandingAmount
+- isActive
+- createdBy
+- createdAt
+
+Supplier type values:
+
+- COAL
+- DIESEL
+- MATERIAL
+- VEHICLE
+- SERVICE
+- OTHER
+
+22.2 Purchase
+
+Purpose:
+Track purchases from suppliers.
+
+Important fields:
+
+- purchaseId
+- purchaseNo
+- kilnId
+- seasonId
+- supplierId
+- date
+- itemName
+- itemCategory
+- quantity
+- unit
+- rate
+- totalAmount
+- paidAmount
+- dueAmount
+- paymentMode
+- billNo
+- billImage
+- remark
+- createdBy
+- createdAt
+
+Business rules:
+
+- Purchase creates SupplierLedger debit/payable.
+- Supplier payment creates SupplierLedger credit.
+- Paid amount creates CashTransaction expense.
+- Fuel purchase should additionally update FuelStock.
+- Purchase due should be reportable.
+
+22.3 Supplier Ledger
+
+Transaction types:
+
+- OPENING_BALANCE
+- PURCHASE
+- PAYMENT
+- RETURN
+- ADJUSTMENT
+
+Important fields:
+
+- supplierLedgerId
+- supplierId
+- kilnId
+- seasonId
+- date
+- transactionType
+- sourceModule
+- sourceId
+- debit
+- credit
+- balanceAfter
+- remark
+- createdBy
+- createdAt
+
+
+23. VEHICLE MANAGEMENT
+======================
+
+Purpose:
+Track vehicles used in dispatch, soil transport, coal transport, diesel, and maintenance.
+
+Important fields:
+
+- vehicleId
+- vehicleNumber
+- vehicleType
+- ownerName
+- driverName
+- driverMobile
+- isOwnVehicle
+- isActive
+- createdAt
+
+Vehicle type values:
+
+- TRACTOR
+- TROLLEY
+- TRUCK
+- JCB
+- OTHER
+
+Features:
+
+- Vehicle master
+- Dispatch linkage
+- Diesel expense
+- Maintenance expense
+- Driver salary
+- Vehicle-wise expense report
+- Vehicle trip report
+
+
+24. CASHBOOK AND FINANCE MODULE
+===============================
+
+Purpose:
+Maintain day-wise cash, bank, and UPI financial transactions.
+
+Transaction types:
+
+- INCOME
+- EXPENSE
+- TRANSFER
+- ADJUSTMENT
+
+Payment modes:
+
+- CASH
+- UPI
+- BANK_TRANSFER
+- CHEQUE
+- OTHER
+
+Account types:
+
+- CASH
+- BANK
+- UPI
+- OTHER
+
+Important fields:
+
+- cashTransactionId
+- kilnId
+- seasonId
+- date
+- transactionType
+- sourceModule
+- sourceId
+- amount
+- paymentMode
+- accountType
+- receivedFrom
+- paidTo
+- remark
+- createdBy
+- createdAt
+
+Cashbook source modules:
+
+- CUSTOMER_PAYMENT
+- WORKER_PAYMENT
+- WORKER_ADVANCE
+- EXPENSE
+- PURCHASE
+- SUPPLIER_PAYMENT
+- MANUAL_ENTRY
+- ADJUSTMENT
+
+Business rules:
+
+- Customer payment creates income.
+- Worker payment creates expense.
+- Worker advance creates expense.
+- Expense approval creates expense.
+- Purchase payment creates expense.
+- Supplier payment creates expense.
+- Manual adjustment should require admin permission.
+- Cashbook entries should not be physically deleted.
+
+
+25. LEAD AND FOLLOW-UP MODULE
+=============================
+
+Purpose:
+Track potential customers and follow-ups.
+
+Important fields:
+
+- leadId
+- kilnId
+- managerId
+- name
+- mobile
+- villageId
+- address
+- requirementDetails
+- expectedQuantity
+- followUpDate
+- status
+- notes
+- voiceRemarkId
+- convertedCustomerId
+- createdBy
+- createdAt
+
+Lead status:
+
+- NEW
+- FOLLOW_UP
+- INTERESTED
+- NOT_INTERESTED
+- CONVERTED
+- CLOSED
+
+Features:
+
+- Add lead
+- Follow-up reminder
+- Pending follow-up popup
+- Convert lead to customer
+- Lead activity history
+
+
+26. VOICE REMARK MODULE
+=======================
+
+Purpose:
+Allow managers to attach voice notes to operational entries.
+
+Related modules:
+
+- ATTENDANCE
+- WORKER
+- WORKER_LEDGER
+- PROCESS_ENTRY
+- STOCK
+- ORDER
+- DISPATCH
+- PAYMENT
+- UDHARI
+- CUSTOMER
+- LEAD
+- EXPENSE
+- FUEL
+- PURCHASE
+- CHAMBER
+
+Important fields:
+
+- voiceRemarkId
+- relatedModule
+- relatedId
+- uploadedBy
+- fileUrl
+- fileName
+- mimeType
+- duration
+- size
+- transcriptionText
+- createdAt
+
+Business rules:
+
+- Only allowed audio formats should be accepted.
+- File size should be limited.
+- Production should use cloud storage.
+- Admin should be able to play voice note from web panel.
+
+
+27. NOTIFICATION AND REMINDER MODULE
+====================================
+
+Notification types:
+
+- PAYMENT_DUE
+- PAYMENT_OVERDUE
+- FOLLOW_UP_DUE
+- STOCK_APPROVAL
+- EXPENSE_APPROVAL
+- PROCESS_APPROVAL
+- ORDER_UPDATE
+- DISPATCH_UPDATE
+- WORKER_PAYMENT
+- LOW_STOCK
+- LOW_FUEL
+- DAILY_SUMMARY
+- GENERAL
+
+Channels:
+
+- APP
+- SMS
+- WHATSAPP
+- EMAIL
+
+Important fields:
+
+- notificationId
+- userId
+- kilnId
+- title
+- message
+- type
+- relatedModule
+- relatedId
+- channel
+- isRead
+- readAt
+- createdAt
+
+Business rules:
+
+- Due payment reminders should run daily.
+- Follow-up reminders should run daily.
+- Low fuel and low stock alerts should run daily.
+- Admin should receive approval notifications.
+- Manager should receive assigned customer/work reminders.
+
+
+28. DASHBOARD MODULE
+====================
+
+28.1 Admin Dashboard
+
+Must show:
+
+- Total active kilns
+- Total active managers
+- Total workers
+- Today attendance
+- Today pathai
+- Today bharai
+- Today phukai
+- Today nikasi
+- Today chhantai
+- Today dispatch
+- Today sales amount
+- Today payment collection
+- Today expenses
+- Coal consumed today
+- Finished stock by category
+- Kaccha stock
+- Sukhi stock
+- Fuel stock
+- Pending stock approvals
+- Pending expense approvals
+- Pending process approvals
+- Pending customer dues
+- Overdue customer dues
+- Worker advance balance
+- Supplier dues
+- Estimated profit/loss
+
+28.2 Manager Dashboard
+
+Must show only assigned scope:
+
+- Assigned workers
+- Attendance pending/done today
+- Today process entries
+- Today customer follow-ups
+- Today payment due customers
+- Stock available
+- Fuel stock if allowed
+- Pending approval requests
+- Customer collections
+- Daily production summary
+- Daily dispatch summary
+
+
+29. REPORTS MODULE
+==================
+
+29.1 Production Reports
+
+- Daily production report
+- Pathai report
+- Raabis report
+- Sukhai report
+- Bharai report
+- Phukai report
+- Nikasi report
+- Chhantai report
+- Worker-wise production
+- Chamber-wise production
+- Month-wise production
+- Season-wise production
+
+29.2 Stock Reports
+
+- Kaccha stock report
+- Sukhi stock report
+- Finished stock report
+- Quality-wise stock
+- Stock ledger
+- Stock movement report
+- Stock correction report
+- Dispatch stock report
+
+29.3 Worker Reports
+
+- Attendance report
+- Worker ledger
+- Worker peshgi report
+- Worker payment report
+- Worker salary report
+- Category-wise worker report
+- Worker productivity report
+
+29.4 Customer Reports
+
+- Customer ledger
+- Udhari report
+- Overdue customer report
+- Village-wise outstanding
+- Beat-wise collection
+- Manager-wise collection
+- Customer-wise sales
+
+29.5 Sales and Dispatch Reports
+
+- Order report
+- Dispatch report
+- Challan report
+- Invoice report
+- Brick type-wise sales
+- Customer-wise dispatch
+- Vehicle-wise dispatch
+
+29.6 Fuel Reports
+
+- Coal purchase report
+- Coal stock report
+- Coal consumption report
+- Chamber-wise coal usage
+- Cost per 1000 bricks
+- Fuel efficiency report
+
+29.7 Expense and Finance Reports
+
+- Daily cashbook
+- Bankbook
+- Expense report
+- Purchase report
+- Supplier due report
+- Worker payment report
+- Profit/loss estimate
+- Season summary
+
+
+30. ACTIVITY LOGS AND AUDIT TRAIL
+=================================
+
+Purpose:
+Track every important action for accountability.
+
+Important fields:
+
+- logId
+- userId
+- role
+- action
+- module
+- moduleId
+- description
+- oldData
+- newData
+- ipAddress
+- userAgent
+- createdAt
+
+Actions to log:
+
+- LOGIN
+- CREATE_WORKER
+- UPDATE_WORKER
+- MARK_ATTENDANCE
+- CREATE_PROCESS_ENTRY
+- UPDATE_PROCESS_ENTRY
+- APPROVE_PROCESS_ENTRY
+- CREATE_STOCK_CORRECTION
+- APPROVE_STOCK_CORRECTION
+- CREATE_ORDER
+- UPDATE_ORDER_STATUS
+- CREATE_DISPATCH
+- CREATE_PAYMENT
+- CREATE_UDHARI
+- CREATE_EXPENSE
+- APPROVE_EXPENSE
+- CREATE_PURCHASE
+- CREATE_WORKER_ADVANCE
+- CREATE_WORKER_PAYMENT
+- CASH_ADJUSTMENT
+- DELETE_OR_CANCEL_ENTRY
+
+
+31. MULTI-LANGUAGE SUPPORT
+==========================
+
+Languages:
+
+- English
+- Hindi
+
+Requirements:
+
+- All master names should support name and nameHindi.
+- API should accept Accept-Language header.
+- Error messages should come from message constants.
+- Dropdown values should be returned by constants/master APIs.
+- Backend should not depend on frontend hardcoding local language terms.
+
+Example:
+
+Brick category:
+- code: NO_1
+- name: No. 1 Brick
+- nameHindi: नंबर 1 ईंट
+
+
+32. FILE UPLOAD AND STORAGE
+===========================
+
+Upload types:
+
+- Voice notes
+- Expense bills
+- Purchase bills
+- Dispatch challan attachments
+- Customer documents
+- Worker documents
+- Vehicle documents
+
+Development storage:
+
+- Local uploads folder
+
+Production storage:
+
+- AWS S3
+- Google Cloud Storage
+- Azure Blob Storage
+- Cloudinary
+
+Storage service should be abstracted so provider can be changed.
+
+Required file validations:
+
+- Allowed mime types
+- Max file size
+- File extension validation
+- Secure file naming
+- Private/public access depending on file type
+
+
+33. API RESPONSE STANDARDS
+==========================
+
+33.1 Success Response
+
+{
+  "success": true,
+  "message": "Fetched successfully",
+  "data": {},
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 100,
+    "totalPages": 5
+  }
+}
+
+33.2 Error Response
+
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "quantity",
+      "message": "Quantity must be greater than zero"
+    }
+  ]
+}
+
+33.3 Pagination Query Standard
+
+Common query parameters:
+
+- page
+- limit
+- sortBy
+- sortOrder
+- fromDate
+- toDate
+- kilnId
+- seasonId
+- managerId
+- search
+- status
+
+Example:
+
+GET /api/v1/process-entries?page=1&limit=20&processCode=PATHAI&fromDate=2026-06-01&toDate=2026-06-30
+
+
+34. API ENDPOINT DOCUMENTATION
+==============================
+
+Base URL:
+
+/api/v1
+
+34.1 Authentication APIs
+
+POST /auth/login
+- Login admin or manager.
+
+GET /auth/me
+- Get current logged-in user profile.
+
+PATCH /auth/change-password
+- Change password.
+
+PATCH /auth/fcm-token
+- Update Firebase token.
+
+POST /auth/logout
+- Logout user if token/session tracking is implemented.
+
+
+34.2 User APIs
+
+GET /users
+POST /users/admins
+POST /users/managers
+GET /users/:id
+PATCH /users/:id
+PATCH /users/:id/deactivate
+
+Admin only:
+- Create admin
+- Create manager
+- Assign kiln/villages
+- Activate/deactivate user
+
+
+34.3 Kiln APIs
+
+GET /kilns
+POST /kilns
+GET /kilns/:id
+PATCH /kilns/:id
+PATCH /kilns/:id/deactivate
+
+
+34.4 Season APIs
+
+GET /seasons
+POST /seasons
+GET /seasons/:id
+PATCH /seasons/:id
+PATCH /seasons/:id/activate
+PATCH /seasons/:id/close
+
+
+34.5 Village / Beat APIs
+
+GET /villages
+POST /villages
+GET /villages/:id
+PATCH /villages/:id
+PATCH /villages/:id/deactivate
+
+
+34.6 Worker Category APIs
+
+GET /worker-categories
+POST /worker-categories
+GET /worker-categories/:id
+PATCH /worker-categories/:id
+PATCH /worker-categories/:id/deactivate
+
+
+34.7 Worker APIs
+
+GET /workers
+POST /workers
+GET /workers/:id
+PATCH /workers/:id
+PATCH /workers/:id/deactivate
+GET /workers/:id/summary
+GET /workers/:id/attendance
+GET /workers/:id/ledger
+GET /workers/:id/production
+
+
+34.8 Attendance APIs
+
+GET /attendance
+POST /attendance
+POST /attendance/bulk
+GET /attendance/history
+GET /attendance/category-wise
+GET /attendance/worker/:workerId
+PATCH /attendance/:id
+POST /attendance/:id/voice-remark
+
+
+34.9 Worker Ledger APIs
+
+GET /worker-ledger
+GET /worker-ledger/worker/:workerId
+POST /worker-ledger/advance
+POST /worker-ledger/payment
+POST /worker-ledger/adjustment
+GET /worker-ledger/summary
+
+
+34.10 Payroll APIs
+
+GET /payroll/summary
+GET /payroll/worker/:workerId
+POST /payroll/generate
+POST /payroll/pay
+GET /payroll/slips/:workerId
+
+
+34.11 Brick Category APIs
+
+GET /brick-categories
+POST /brick-categories
+GET /brick-categories/:id
+PATCH /brick-categories/:id
+PATCH /brick-categories/:id/deactivate
+
+
+34.12 Process Master APIs
+
+GET /processes
+POST /processes
+GET /processes/:id
+PATCH /processes/:id
+PATCH /processes/:id/deactivate
+
+
+34.13 Process Entry APIs
+
+GET /process-entries
+POST /process-entries
+GET /process-entries/:id
+PATCH /process-entries/:id
+DELETE /process-entries/:id
+
+GET /process-entries/summary
+GET /process-entries/worker/:workerId
+GET /process-entries/chamber/:chamberId
+
+PATCH /process-entries/:id/approve
+PATCH /process-entries/:id/reject
+POST /process-entries/:id/voice-remark
+
+Common filters:
+- processCode
+- workerId
+- chamberId
+- kilnId
+- seasonId
+- managerId
+- fromDate
+- toDate
+- approvalStatus
+
+
+34.14 Chamber APIs
+
+GET /chambers
+POST /chambers
+GET /chambers/:id
+PATCH /chambers/:id
+PATCH /chambers/:id/status
+GET /chambers/:id/history
+
+
+34.15 Stock APIs
+
+GET /stock
+GET /stock/summary
+GET /stock/category/:categoryCode
+POST /stock/correction-request
+PATCH /stock/correction-request/:id/approve
+PATCH /stock/correction-request/:id/reject
+
+
+34.16 Stock Ledger APIs
+
+GET /stock-ledger
+GET /stock-ledger/:id
+GET /stock-ledger/summary
+POST /stock-ledger/correction
+PATCH /stock-ledger/:id/approve
+PATCH /stock-ledger/:id/reject
+
+
+34.17 Fuel APIs
+
+GET /fuel/types
+POST /fuel/types
+GET /fuel/stock
+GET /fuel/purchases
+POST /fuel/purchases
+GET /fuel/purchases/:id
+PATCH /fuel/purchases/:id
+GET /fuel/consumption
+POST /fuel/consumption
+GET /fuel/reports/consumption
+GET /fuel/reports/cost-per-brick
+
+
+34.18 Customer APIs
+
+GET /customers
+POST /customers
+GET /customers/:id
+PATCH /customers/:id
+PATCH /customers/:id/deactivate
+GET /customers/:id/ledger
+GET /customers/:id/orders
+GET /customers/:id/payments
+GET /customers/:id/udhari
+
+
+34.19 Lead APIs
+
+GET /leads
+POST /leads
+GET /leads/:id
+PATCH /leads/:id
+PATCH /leads/:id/follow-up
+POST /leads/:id/convert-to-customer
+
+
+34.20 Order APIs
+
+GET /orders
+POST /orders
+GET /orders/:id
+PATCH /orders/:id
+PATCH /orders/:id/status
+GET /orders/:id/dispatches
+
+
+34.21 Dispatch APIs
+
+GET /dispatches
+POST /dispatches
+GET /dispatches/:id
+PATCH /dispatches/:id
+PATCH /dispatches/:id/status
+GET /dispatches/:id/challan
+GET /dispatches/:id/invoice
+POST /dispatches/:id/voice-remark
+
+
+34.22 Udhari APIs
+
+GET /udhari
+POST /udhari
+GET /udhari/overdue
+GET /udhari/customer/:customerId
+GET /udhari/:id
+PATCH /udhari/:id
+PATCH /udhari/:id/settle
+
+
+34.23 Payment APIs
+
+GET /payments
+POST /payments
+GET /payments/:id
+GET /payments/customer/:customerId
+POST /payments/:id/voice-remark
+
+
+34.24 Customer Ledger APIs
+
+GET /customer-ledger
+GET /customer-ledger/customer/:customerId
+POST /customer-ledger/adjustment
+
+
+34.25 Expense APIs
+
+GET /expenses
+POST /expenses
+GET /expenses/:id
+PATCH /expenses/:id
+PATCH /expenses/:id/approve
+PATCH /expenses/:id/reject
+GET /expenses/summary
+
+
+34.26 Supplier APIs
+
+GET /suppliers
+POST /suppliers
+GET /suppliers/:id
+PATCH /suppliers/:id
+PATCH /suppliers/:id/deactivate
+GET /suppliers/:id/ledger
+
+
+34.27 Purchase APIs
+
+GET /purchases
+POST /purchases
+GET /purchases/:id
+PATCH /purchases/:id
+POST /purchases/:id/payment
+
+
+34.28 Supplier Ledger APIs
+
+GET /supplier-ledger
+GET /supplier-ledger/supplier/:supplierId
+POST /supplier-ledger/adjustment
+
+
+34.29 Vehicle APIs
+
+GET /vehicles
+POST /vehicles
+GET /vehicles/:id
+PATCH /vehicles/:id
+PATCH /vehicles/:id/deactivate
+GET /vehicles/:id/expenses
+GET /vehicles/:id/dispatches
+
+
+34.30 Cashbook APIs
+
+GET /cashbook
+POST /cashbook/manual-entry
+GET /cashbook/summary
+GET /cashbook/day-book
+GET /cashbook/bank-book
+
+
+34.31 Reports APIs
+
+GET /reports/daily-summary
+GET /reports/production
+GET /reports/pathai
+GET /reports/bharai
+GET /reports/phukai
+GET /reports/nikasi
+GET /reports/chhantai
+GET /reports/stock
+GET /reports/fuel
+GET /reports/worker-ledger
+GET /reports/customer-ledger
+GET /reports/sales
+GET /reports/dispatch
+GET /reports/expenses
+GET /reports/profit-loss
+
+
+34.32 Dashboard APIs
+
+GET /dashboard/admin
+GET /dashboard/manager
+
+
+34.33 Voice Remark APIs
+
+GET /voice-remarks
+POST /voice-remarks
+GET /voice-remarks/:id
+DELETE /voice-remarks/:id
+
+
+34.34 Notification APIs
+
+GET /notifications
+PATCH /notifications/read-all
+PATCH /notifications/:id/read
+
+
+34.35 Logs APIs
+
+GET /logs
+
+
+34.36 Constants APIs
+
+GET /constants
+GET /constants/roles
+GET /constants/brick-categories
+GET /constants/worker-categories
+GET /constants/processes
+GET /constants/payment-modes
+GET /constants/languages
+
+
+35. DATABASE MODEL DOCUMENTATION
+================================
+
+35.1 User
+
+Fields:
+
+- name
+- mobile
+- email
+- passwordHash
+- role
+- languagePreference
+- assignedKilnId
+- assignedVillages
+- permissions
+- fcmToken
+- isActive
+- createdBy
+- createdAt
+- updatedAt
+
+Indexes:
+
+- mobile unique
+- email unique sparse
+- role + isActive
+
+
+35.2 Kiln
+
+Fields:
+
+- name
+- ownerName
+- mobile
+- address
+- district
+- state
+- gstNo
+- licenseNo
+- kilnType
+- numberOfChambers
+- isActive
+
+
+35.3 Season
+
+Fields:
+
+- kilnId
+- name
+- startDate
+- endDate
+- openingStockDate
+- status
+- isDefault
+
+
+35.4 Worker
+
+Fields:
+
+- kilnId
+- seasonId
+- assignedManagerId
+- name
+- mobile
+- aadhaarNo
+- address
+- village
+- categoryCode
+- teamName
+- jodiName
+- salaryType
+- dailyWage
+- monthlySalary
+- pieceRate
+- openingAdvance
+- currentBalance
+- joiningDate
+- isActive
+
+
+35.5 Attendance
+
+Fields:
+
+- kilnId
+- seasonId
+- workerId
+- managerId
+- date
+- status
+- categoryCode
+- checkInTime
+- checkOutTime
+- lateRemark
+- textRemark
+- voiceRemarkId
+- salaryAmountForDay
+
+Indexes:
+
+- workerId + date unique
+- kilnId + date
+- managerId + date
+
+
+35.6 WorkerLedger
+
+Fields:
+
+- workerId
+- kilnId
+- seasonId
+- managerId
+- date
+- transactionType
+- sourceModule
+- sourceId
+- processCode
+- quantity
+- unit
+- rate
+- amount
+- debit
+- credit
+- balanceAfter
+- paymentMode
+- referenceNo
+- remark
+- voiceRemarkId
+
+
+35.7 BrickCategory
+
+Fields:
+
+- code
+- name
+- nameHindi
+- categoryGroup
+- saleable
+- allowDispatch
+- description
+- sortOrder
+- isActive
+
+
+35.8 Process
+
+Fields:
+
+- code
+- name
+- nameHindi
+- sequenceNo
+- inputCategoryCodes
+- outputCategoryCodes
+- requiresChamber
+- requiresWorkers
+- requiresFuel
+- affectsStock
+- isActive
+
+
+35.9 ProcessEntry
+
+Fields:
+
+- kilnId
+- seasonId
+- managerId
+- date
+- processCode
+- fromStockCategoryId
+- fromCategoryCode
+- toStockCategoryId
+- toCategoryCode
+- quantityIn
+- quantityOut
+- wastageQuantity
+- chamberId
+- outputs
+- workerContributions
+- fuelConsumptionIds
+- approvalStatus
+- approvedBy
+- approvedAt
+- rejectionReason
+- textRemark
+- voiceRemarkId
+- createdBy
+- updatedBy
+
+
+35.10 Chamber
+
+Fields:
+
+- kilnId
+- seasonId
+- chamberNo
+- chamberName
+- capacity
+- currentQuantity
+- status
+- lastProcessEntryId
+- lastProcessDate
+- isActive
+
+
+35.11 Stock
+
+Fields:
+
+- kilnId
+- seasonId
+- categoryId
+- categoryCode
+- availableQuantity
+- reservedQuantity
+- damagedQuantity
+- lastUpdatedBy
+
+Indexes:
+
+- kilnId + seasonId + categoryId unique
+
+
+35.12 StockLedger
+
+Fields:
+
+- kilnId
+- seasonId
+- date
+- transactionType
+- fromCategoryId
+- fromCategoryCode
+- toCategoryId
+- toCategoryCode
+- quantity
+- sourceModule
+- sourceId
+- previousQuantity
+- newQuantity
+- approvalStatus
+- createdBy
+- approvedBy
+- remark
+
+
+35.13 FuelType
+
+Fields:
+
+- code
+- name
+- nameHindi
+- unit
+- isActive
+
+
+35.14 FuelPurchase
+
+Fields:
+
+- kilnId
+- seasonId
+- supplierId
+- fuelTypeId
+- date
+- quantity
+- unit
+- rate
+- totalAmount
+- paidAmount
+- dueAmount
+- vehicleNumber
+- billNo
+- billImage
+- remark
+- createdBy
+
+
+35.15 FuelStock
+
+Fields:
+
+- kilnId
+- seasonId
+- fuelTypeId
+- availableQuantity
+- averageRate
+- lastUpdatedBy
+
+
+35.16 FuelConsumption
+
+Fields:
+
+- kilnId
+- seasonId
+- processEntryId
+- chamberId
+- fuelTypeId
+- date
+- quantity
+- estimatedCost
+- consumedBy
+- remark
+
+
+35.17 Customer
+
+Fields:
+
+- kilnId
+- assignedManagerId
+- name
+- mobile
+- alternateMobile
+- villageId
+- beatName
+- address
+- customerType
+- gstNo
+- openingBalance
+- creditLimit
+- outstandingAmount
+- isActive
+
+
+35.18 Order
+
+Fields:
+
+- orderNo
+- kilnId
+- seasonId
+- customerId
+- villageId
+- managerId
+- orderDate
+- expectedDeliveryDate
+- deliveryAddress
+- items
+- totalQuantity
+- totalAmount
+- paidAmount
+- udhariAmount
+- orderStatus
+- textRemark
+- voiceRemarkId
+
+
+35.19 Dispatch
+
+Fields:
+
+- dispatchNo
+- orderId
+- customerId
+- kilnId
+- seasonId
+- dispatchDate
+- items
+- totalQuantity
+- totalAmount
+- vehicleId
+- vehicleNumber
+- driverName
+- driverMobile
+- loadingWorkerIds
+- challanNo
+- invoiceNo
+- deliveryStatus
+- textRemark
+- voiceRemarkId
+
+
+35.20 Udhari
+
+Fields:
+
+- customerId
+- villageId
+- managerId
+- kilnId
+- seasonId
+- orderId
+- dispatchId
+- amount
+- pendingAmount
+- paidAmount
+- udhariDate
+- dueDate
+- reason
+- status
+- reminderEnabled
+- reminderDaysBefore
+- textRemark
+- voiceRemarkId
+
+
+35.21 Payment
+
+Fields:
+
+- customerId
+- udhariId
+- orderId
+- dispatchId
+- kilnId
+- seasonId
+- amount
+- paymentMode
+- paymentDate
+- receivedBy
+- referenceNo
+- textRemark
+- voiceRemarkId
+
+
+35.22 CustomerLedger
+
+Fields:
+
+- customerId
+- kilnId
+- seasonId
+- date
+- transactionType
+- sourceModule
+- sourceId
+- debit
+- credit
+- balanceAfter
+- remark
+- createdBy
+
+
+35.23 Expense
+
+Fields:
+
+- kilnId
+- seasonId
+- managerId
+- date
+- categoryCode
+- amount
+- paymentMode
+- paidTo
+- description
+- billImage
+- approvalStatus
+- approvedBy
+- approvedAt
+- rejectionReason
+- voiceRemarkId
+- createdBy
+
+
+35.24 Supplier
+
+Fields:
+
+- name
+- mobile
+- supplierType
+- address
+- gstNo
+- openingBalance
+- outstandingAmount
+- isActive
+
+
+35.25 Purchase
+
+Fields:
+
+- purchaseNo
+- kilnId
+- seasonId
+- supplierId
+- date
+- itemName
+- itemCategory
+- quantity
+- unit
+- rate
+- totalAmount
+- paidAmount
+- dueAmount
+- paymentMode
+- billNo
+- billImage
+- remark
+
+
+35.26 SupplierLedger
+
+Fields:
+
+- supplierId
+- kilnId
+- seasonId
+- date
+- transactionType
+- sourceModule
+- sourceId
+- debit
+- credit
+- balanceAfter
+- remark
+
+
+35.27 CashTransaction
+
+Fields:
+
+- kilnId
+- seasonId
+- date
+- transactionType
+- sourceModule
+- sourceId
+- amount
+- paymentMode
+- accountType
+- receivedFrom
+- paidTo
+- remark
+- createdBy
+
+
+35.28 VoiceRemark
+
+Fields:
+
+- relatedModule
+- relatedId
+- uploadedBy
+- fileUrl
+- fileName
+- mimeType
+- duration
+- size
+- transcriptionText
+- createdAt
+
+
+35.29 Notification
+
+Fields:
+
+- userId
+- kilnId
+- title
+- message
+- type
+- relatedModule
+- relatedId
+- channel
+- isRead
+- readAt
+- createdAt
+
+
+35.30 ActivityLog
+
+Fields:
+
+- userId
+- role
+- action
+- module
+- moduleId
+- description
+- oldData
+- newData
+- ipAddress
+- userAgent
+- createdAt
+
+
+36. BUSINESS VALIDATIONS
+========================
+
+36.1 Common Validations
+
+- Validate all ObjectIds.
+- Validate required fields.
+- Validate enum values.
+- Validate positive quantity.
+- Validate positive amount.
+- Validate date formats.
+- Validate active kiln and active season.
+- Validate manager scope.
+- Validate duplicate records.
+- Backend must recalculate totals instead of trusting frontend totals.
+
+36.2 Stock Validations
+
+- Quantity must be greater than zero.
+- Stock reduction cannot exceed available stock.
+- Transfer requires source and destination categories.
+- Dispatch can use only saleable stock.
+- Stock correction requires reason.
+- Manager stock correction should require admin approval.
+
+36.3 Process Validations
+
+- processCode must exist and be active.
+- Chamber is required when process requires chamber.
+- Workers are required when process requires workers.
+- Fuel is required when process requires fuel.
+- quantityOut cannot be negative.
+- Wastage cannot be negative.
+- Chhantai output sum should not exceed input quantity unless override.
+- Manager can create process entry only for assigned kiln.
+
+36.4 Worker Ledger Validations
+
+- Worker must be active.
+- Amount must be positive.
+- Worker advance/payment must create cashbook transaction.
+- Worker earning should be linked to valid process entry or attendance.
+- Manual adjustment should require reason.
+
+36.5 Order and Dispatch Validations
+
+- Customer must exist and be active.
+- Order items cannot be empty.
+- Quantity and rate must be positive.
+- Dispatch quantity cannot exceed order pending quantity.
+- Dispatch quantity cannot exceed available stock.
+- Cancelled orders cannot be dispatched.
+- Delivered dispatch should not be edited except by admin correction.
+
+36.6 Payment Validations
+
+- Payment amount must be positive.
+- Payment cannot exceed pending amount unless overpayment allowed.
+- Payment should update udhari if linked.
+- Payment should update customer ledger.
+- Payment should create cashbook entry.
+
+36.7 Expense Validations
+
+- Expense amount must be positive.
+- Approval required based on category/amount rules.
+- Rejected expenses should not create cashbook transaction.
+- Approved expense should not be edited without correction entry.
+
+
+37. TRANSACTION SAFETY REQUIREMENTS
+===================================
+
+MongoDB transactions must be used for multi-step operations.
+
+Must use transaction for:
+
+1. Pathai entry:
+   - Create ProcessEntry
+   - Add stock
+   - Create StockLedger
+   - Create WorkerLedger
+   - Create ActivityLog
+
+2. Sukhai entry:
+   - Reduce Kaccha stock
+   - Add Sukhi stock
+   - Create StockLedger transfer
+   - Create ProcessEntry
+
+3. Bharai entry:
+   - Reduce Sukhi stock
+   - Update chamber quantity/status
+   - Create ProcessEntry
+   - Create WorkerLedger
+
+4. Phukai entry:
+   - Create ProcessEntry
+   - Reduce FuelStock
+   - Create FuelConsumption
+   - Create WorkerLedger
+   - Update chamber status
+
+5. Chhantai entry:
+   - Create ProcessEntry
+   - Add multiple finished stock categories
+   - Create multiple StockLedger records
+   - Update chamber status
+
+6. Dispatch:
+   - Validate order
+   - Validate stock
+   - Create Dispatch
+   - Reduce stock
+   - Create StockLedger
+   - Update order status
+   - Create CustomerLedger
+   - Create Udhari if unpaid
+   - Create ActivityLog
+
+7. Customer payment:
+   - Create Payment
+   - Update Udhari
+   - Create CustomerLedger
+   - Update customer outstanding
+   - Create CashTransaction
+
+8. Worker advance/payment:
+   - Create WorkerLedger
+   - Update worker balance
+   - Create CashTransaction
+
+9. Fuel purchase:
+   - Create FuelPurchase
+   - Update FuelStock
+   - Create SupplierLedger
+   - Create CashTransaction if paid
+
+10. Expense approval:
+   - Update expense status
+   - Create CashTransaction
+   - Create ActivityLog
+
+
+38. SECURITY REQUIREMENTS
+=========================
+
+Authentication:
+
+- JWT access token
+- Password hash using bcrypt
+- Token expiry
+- Strong JWT secret
+- Optional refresh token support
+
+Authorization:
+
+- Role-based access control
+- Manager scope enforcement
+- Kiln scope enforcement
+- Village/customer scope enforcement
+- Admin-only approvals
+
+Security middleware:
+
+- helmet
+- cors with allowed origins
+- login rate limiting
+- request body size limit
+- mongo sanitize
+- xss protection where applicable
+
+Sensitive data should never be returned:
+
+- passwordHash
+- JWT secret
+- Firebase private key
+- SMS API key
+- WhatsApp API key
+
+
+39. ENVIRONMENT VARIABLES
+=========================
+
+Recommended .env.example:
+
+PORT=5000
+NODE_ENV=development
+APP_BASE_URL=http://localhost:5000
+
+MONGO_URI=mongodb://127.0.0.1:27017/munimsarthi
+
+JWT_SECRET=change_this_secret
+JWT_EXPIRES_IN=7d
+
+ADMIN_NAME=Admin
+ADMIN_MOBILE=9999999999
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=Admin@12345
+
+UPLOAD_DIR=uploads
+STORAGE_PROVIDER=LOCAL
+
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY=
+
+SMS_API_KEY=
+SMS_SENDER_ID=
+SMS_BASE_URL=
+
+WHATSAPP_PROVIDER=
+WHATSAPP_API_KEY=
+
+DEFAULT_LANGUAGE=en
+
+
+40. CRON JOBS
+=============
+
+Required cron jobs:
+
+1. Due payment reminder
+   - Finds udhari records due today or overdue.
+   - Sends notification to manager/admin.
+
+2. Follow-up reminder
+   - Finds leads due for follow-up today.
+   - Sends notification to manager.
+
+3. Daily summary
+   - Sends production, sales, expense, and payment summary to owner/admin.
+
+4. Low stock alert
+   - Checks finished stock below threshold.
+
+5. Low fuel alert
+   - Checks coal/fuel stock below threshold.
+
+6. Pending approval reminder
+   - Finds pending stock, expense, or process approvals.
+
+7. Worker payment summary
+   - Sends worker due/payment summary.
+
+Daily summary should include:
+
+- Today pathai
+- Today bharai
+- Today phukai
+- Today nikasi
+- Today chhantai
+- Today dispatch
+- Today sales
+- Today cash collection
+- Today expenses
+- Coal consumed
+- Pending dues
+- Low stock/fuel warnings
+
+
+41. SEED DATA
+=============
+
+Seed roles:
+
+- ADMIN
+- MANAGER
+- WORKER
+
+Seed worker categories:
+
+- ETH_PATHAI
+- RAABIS
+- KACCHA_NIKASI
+- SUKHAI
+- BHARAI
+- PHUKAI
+- PAKAI
+- NIKASI
+- CHHANTAI
+- KOYLE
+- COAL_FEEDING
+- LOADING
+- MITTI_KHUDAI
+- TRACTOR_DRIVER
+- JCB_OPERATOR
+- MUNSHI
+- CHOWKIDAR
+- OTHER
+
+Seed brick categories:
+
+- KACCHA_EENT
+- SUKHI_EENT
+- SEEDHA_MANJAL
+- TEDHA_MANJAL
+- PAKKA_EENT
+- NO_1
+- NO_2
+- NO_3
+- JHAMA
+- BROKEN
+- CHHATTA
+- OTHER
+
+Seed processes:
+
+- MITTI_KHUDAI
+- RAABIS
+- PATHAI
+- KACCHA_NIKASI
+- SUKHAI
+- BHARAI
+- PHUKAI
+- PAKAI
+- NIKASI
+- CHHANTAI
+- STOCK_TRANSFER
+- DISPATCH
+
+Seed fuel types:
+
+- COAL
+- BIOMASS
+- PET_COKE
+- WOOD
+- DIESEL
+
+Seed payment modes:
+
+- CASH
+- UPI
+- BANK_TRANSFER
+- CHEQUE
+- OTHER
+
+Seed expense categories:
+
+- LABOR
+- PATHAI
+- BHARAI
+- NIKASI
+- FUEL
+- COAL
+- DIESEL
+- VEHICLE
+- REPAIR
+- OFFICE
+- ELECTRICITY
+- INTERNET
+- FOOD
+- SECURITY
+- MISCELLANEOUS
+
+
+42. PHASE-WISE IMPLEMENTATION PLAN
+==================================
+
+Phase 1 - Core ERP Foundation
+
+- Authentication and roles
+- Kiln and season setup
+- Worker categories
+- Brick categories
+- Process master
+- Worker management
+- Attendance
+- WorkerLedger
+- ProcessEntry
+- Stock and StockLedger
+- Pathai/Bharai/Nikasi/Chhantai logic
+- Basic dashboard
+
+Phase 2 - Operational Depth
+
+- Chamber management
+- Coal/fuel management
+- Expense module
+- Dispatch/challan module
+- Customer ledger
+- Udhari and payment improvements
+- Reports upgrade
+
+Phase 3 - Financial ERP
+
+- Supplier management
+- Purchase management
+- Supplier ledger
+- Cashbook/bankbook
+- Profit/loss report
+- Season closing report
+
+Phase 4 - Automation and Advanced Features
+
+- WhatsApp reports
+- Invoice PDF generation
+- Worker payment slips
+- GPS vehicle tracking
+- Owner analytics
+- Offline sync for manager app
+- Advanced permissions
+
+
+43. FINAL BACKEND ACCEPTANCE CHECKLIST
+======================================
+
+A complete Brick Kiln ERP backend should support:
+
+[ ] Admin login
+[ ] Manager login
+[ ] Role-based access control
+[ ] Kiln setup
+[ ] Season setup
+[ ] Worker categories
+[ ] Worker registration
+[ ] Worker attendance
+[ ] Worker peshgi / advance
+[ ] Worker payment
+[ ] Worker ledger
+[ ] Payroll summary
+[ ] Brick categories
+[ ] Process master
+[ ] Pathai entry
+[ ] Kaccha stock generation
+[ ] Sukhai stock transfer
+[ ] Bharai entry
+[ ] Chamber loading
+[ ] Phukai entry
+[ ] Coal/fuel consumption
+[ ] Nikasi entry
+[ ] Chhantai quality split
+[ ] Finished stock
+[ ] Stock ledger
+[ ] Stock correction approval
+[ ] Customer master
+[ ] Village/beat management
+[ ] Order creation
+[ ] Dispatch creation
+[ ] Challan generation
+[ ] Stock reduction on dispatch
+[ ] Udhari creation
+[ ] Payment collection
+[ ] Customer ledger
+[ ] Expense entry
+[ ] Expense approval
+[ ] Supplier master
+[ ] Purchase entry
+[ ] Supplier ledger
+[ ] Fuel purchase
+[ ] Fuel stock
+[ ] Cashbook
+[ ] Daily dashboard
+[ ] Admin dashboard
+[ ] Manager dashboard
+[ ] Reports
+[ ] Notifications
+[ ] Due payment reminders
+[ ] Follow-up reminders
+[ ] Voice remarks
+[ ] Activity logs
+[ ] Hindi and English support
+[ ] Secure file uploads
+[ ] Transaction-safe stock/payment operations
+
+
+FINAL SUMMARY
+=============
+
+The complete MunimSarthi backend should be designed around these core concepts:
+
+1. Process-driven production
+2. Brick stage and quality-wise stock
+3. Stock ledger for every stock movement
+4. Worker ledger for earnings, peshgi, and payments
+5. Chamber-wise kiln operation
+6. Fuel/coal tracking and consumption
+7. Customer ledger and udhari tracking
+8. Dispatch-based stock reduction
+9. Cashbook-based financial tracking
+10. Reports and dashboards for owner visibility
+
+The most important backend shift is:
+
+FROM:
+Simple KACCHI_ETH / PAKKI_ETH production tracking
+
+TO:
+Pathai -> Kaccha Stock -> Sukhai -> Bharai -> Phukai -> Pakai -> Nikasi -> Chhantai -> Finished Stock -> Dispatch
+
+This backend structure can support a complete Brick Kiln ERP for real bhatta operations in UP/Bihar and similar regions.

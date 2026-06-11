@@ -1,4 +1,11 @@
 const router = require('express').Router();
 const controller = require('./constants.controller');
 router.get('/', controller.getConstants);
+router.get('/worker-categories', controller.workerCategories);
+router.get('/brick-categories', controller.brickCategories);
+router.get('/processes', controller.processes);
+router.get('/fuel-types', controller.fuelTypes);
+router.get('/expense-categories', controller.expenseCategories);
+router.get('/payment-modes', controller.paymentModes);
+router.get('/languages', controller.languages);
 module.exports = router;

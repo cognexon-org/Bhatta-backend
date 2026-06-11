@@ -1,0 +1,13 @@
+const Worker = require('../workers/worker.model');
+const WorkerLedger = require('../workerLedger/workerLedger.model');
+const { createWorkerLedgerEntry } = require('../workerLedger/workerLedger.service');
+const roles = require('../../constants/roles');
+const asyncHandler = require('../../utils/asyncHandler');
+const { success, created, fail } = require('../../utils/apiResponse');
+const { t } = require('../../constants/messages');
+function ledgerFilter(req){ const f={}; ['workerId','kilnId','seasonId'].forEach(k=>{ if(req.query[k]) f[k]=req.query[k]; }); if(req.user.role===roles.MANAGER) f.managerId=req.user._id; if(req.query.fromDate||req.query.toDate){ f.date={}; if(req.query.fromDate) f.date.$gte=new Date(req.query.fromDate); if(req.query.toDate){ const d=new Date(req.query.toDate); d.setHours(23,59,59,999); f.date.$lte=d; }} return f; }
+exports.summary = asyncHandler(async(req,res)=>{ const data=await WorkerLedger.aggregate([{ $match: ledgerFilter(req) },{ $group:{ _id:'$workerId', debit:{ $sum:'$debit' }, credit:{ $sum:'$credit' }, net:{ $sum:{ $subtract:['$debit','$credit'] } } } }]); return success(res,t('FETCHED',req.lang),data); });
+exports.worker = asyncHandler(async(req,res)=>{ const worker=await Worker.findById(req.params.workerId); if(!worker) return fail(res,'Worker not found',404); const ledger=await WorkerLedger.find({workerId:worker._id}).sort({date:-1}).limit(100); return success(res,t('FETCHED',req.lang),{worker,ledger,balance:worker.currentBalance}); });
+exports.generate = asyncHandler(async(req,res)=>{ const data=await WorkerLedger.aggregate([{ $match: ledgerFilter(req) },{ $group:{ _id:'$workerId', earning:{ $sum:'$debit' }, paid:{ $sum:'$credit' }, balance:{ $sum:{ $subtract:['$debit','$credit'] } } } }]); return created(res,t('CREATED',req.lang),{generatedAt:new Date(),items:data}); });
+exports.pay = asyncHandler(async(req,res)=>{ const item=await createWorkerLedgerEntry({ workerId:req.body.workerId, kilnId:req.body.kilnId||req.user.assignedKilnId, seasonId:req.body.seasonId, managerId:req.user.role===roles.MANAGER?req.user._id:req.body.managerId, date:new Date(), transactionType:'PAYMENT', sourceModule:'PAYROLL', amount:Number(req.body.amount||0), paymentMode:req.body.paymentMode||'CASH', remark:req.body.remark, createdBy:req.user._id }); return created(res,t('CREATED',req.lang),item); });
+exports.slips = asyncHandler(async(req,res)=>{ const worker=await Worker.findById(req.params.workerId); const ledger=await WorkerLedger.find({workerId:req.params.workerId}).sort({date:-1}); return success(res,t('FETCHED',req.lang),{worker,ledger,balance:worker?worker.currentBalance:0}); });

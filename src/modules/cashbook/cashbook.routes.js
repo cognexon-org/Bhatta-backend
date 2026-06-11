@@ -1,0 +1,14 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./cashbook.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.list);
+router.post('/manual-entry', permit(roles.ADMIN), [body('transactionType').notEmpty(), body('amount').isNumeric()], validate, controller.manualEntry);
+router.get('/summary', permit(roles.ADMIN, roles.MANAGER), controller.summary);
+router.get('/day-book', permit(roles.ADMIN, roles.MANAGER), controller.dayBook);
+router.get('/bank-book', permit(roles.ADMIN, roles.MANAGER), controller.bankBook);
+module.exports = router;

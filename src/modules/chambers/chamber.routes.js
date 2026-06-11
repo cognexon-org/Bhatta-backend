@@ -1,0 +1,15 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./chamber.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.list);
+router.post('/', permit(roles.ADMIN), [body('kilnId').notEmpty(), body('chamberNo').notEmpty()], validate, controller.create);
+router.get('/:id', permit(roles.ADMIN, roles.MANAGER), controller.get);
+router.patch('/:id', permit(roles.ADMIN), controller.update);
+router.patch('/:id/status', permit(roles.ADMIN, roles.MANAGER), [body('status').notEmpty()], validate, controller.updateStatus);
+router.get('/:id/history', permit(roles.ADMIN, roles.MANAGER), controller.history);
+module.exports = router;
