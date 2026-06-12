@@ -10,8 +10,29 @@ exports.createPayment = asyncHandler(async (req, res) => {
   const customer = await Customer.findById(req.body.customerId); if (!customer) return fail(res, 'Customer not found', 404);
   const amount = Number(req.body.amount || 0);
   const payment = await Payment.create({ ...req.body, amount, receivedBy: req.user._id });
-  if (req.body.udhariId) {
-    const udhari = await Udhari.findById(req.body.udhariId); if (udhari) { const applied = Math.min(amount, udhari.pendingAmount); udhari.pendingAmount -= applied; udhari.paidAmount += applied; udhari.status = udhari.pendingAmount <= 0 ? 'PAID' : 'PARTIAL_PAID'; await udhari.save(); }
+  let udhari = null;
+  if (req.body.udhariId) udhari = await Udhari.findById(req.body.udhariId);
+  else if (req.body.orderId) udhari = await Udhari.findOne({ orderId: req.body.orderId });
+  
+  if (udhari) {
+    const applied = Math.min(amount, udhari.pendingAmount);
+    udhari.pendingAmount -= applied;
+    udhari.paidAmount += applied;
+    udhari.status = udhari.pendingAmount <= 0 ? 'PAID' : 'PARTIAL_PAID';
+    await udhari.save();
+  }
+
+  if (req.body.orderId) {
+    const Order = require('../orders/order.model');
+    const order = await Order.findById(req.body.orderId);
+    if (order) {
+      order.paidAmount += amount;
+      order.udhariAmount = Math.max(0, order.udhariAmount - amount);
+      if (order.paidAmount >= order.totalAmount && order.orderStatus === 'PENDING') {
+         order.orderStatus = 'COMPLETED'; // Optionally complete the order if fully paid and pending
+      }
+      await order.save();
+    }
   }
   customer.totalPaid += amount; customer.outstandingAmount = Math.max(0, customer.outstandingAmount - amount); await customer.save();
   return created(res, t('PAYMENT_RECORDED', req.lang), payment);

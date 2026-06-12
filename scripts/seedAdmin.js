@@ -21,8 +21,10 @@ async function seed() {
   }
 
   const categories = [
-    { name: 'Seedha Manjal', nameHindi: 'सीधा मंजल', code: 'SEEDHA_MANJAL' },
-    { name: 'Tedha Manjal', nameHindi: 'टेढ़ा मंजल', code: 'TEDHA_MANJAL' },
+    { name: 'Seedha Kacchi', nameHindi: 'सीधा कच्ची', code: 'SEEDHA_KACCHI' },
+    { name: 'Seedha Pakki', nameHindi: 'सीधा पक्की', code: 'SEEDHA_PAKKI' },
+    { name: 'Tedha Kacchi', nameHindi: 'टेढ़ा कच्ची', code: 'TEDHA_KACCHI' },
+    { name: 'Tedha Pakki', nameHindi: 'टेढ़ा पक्की', code: 'TEDHA_PAKKI' },
     { name: 'Other', nameHindi: 'अन्य', code: 'OTHER' }
   ];
   for (const category of categories) {
