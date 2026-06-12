@@ -23,7 +23,11 @@ exports.markAttendance = asyncHandler(async (req, res) => {
       kilnId: worker.kilnId || req.user.assignedKilnId,
       date,
       status: entry.status,
+      categoryId: worker.categoryId,
       categoryCode: worker.categoryCode,
+      categoryName: worker.categoryName,
+      categoryNameHindi: worker.categoryNameHindi,
+      seasonId: worker.seasonId || entry.seasonId,
       checkInTime: entry.checkInTime,
       checkOutTime: entry.checkOutTime,
       lateRemark: entry.lateRemark,
@@ -42,7 +46,7 @@ exports.getDailyAttendance = asyncHandler(async (req, res) => {
   const filter = { date: { $gte: startOfDay(date), $lte: endOfDay(date) } };
   if (req.user.role === roles.MANAGER) filter.managerId = req.user._id;
   if (req.query.categoryCode) filter.categoryCode = req.query.categoryCode;
-  const data = await Attendance.find(filter).populate('workerId managerId kilnId voiceRemarkId').sort({ categoryCode: 1 });
+  const data = await Attendance.find(filter).populate('workerId managerId kilnId seasonId categoryId voiceRemarkId').sort({ categoryCode: 1 });
   return success(res, t('FETCHED', req.lang), data);
 });
 
@@ -59,7 +63,7 @@ exports.history = asyncHandler(async (req, res) => {
   if (req.query.workerId) filter.workerId = req.query.workerId;
   if (req.query.from || req.query.to) filter.date = { ...(req.query.from ? { $gte: startOfDay(req.query.from) } : {}), ...(req.query.to ? { $lte: endOfDay(req.query.to) } : {}) };
   if (req.user.role === roles.MANAGER) filter.managerId = req.user._id;
-  const data = await Attendance.find(filter).populate('workerId managerId voiceRemarkId').sort({ date: -1 });
+  const data = await Attendance.find(filter).populate('workerId managerId categoryId voiceRemarkId').sort({ date: -1 });
   return success(res, t('FETCHED', req.lang), data);
 });
 

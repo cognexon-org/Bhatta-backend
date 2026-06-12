@@ -436,3 +436,62 @@ server {
 ## License
 
 Private project for Cognexon Solutions Pvt. Ltd.
+
+---
+
+## Complete Kiln ERP Update
+
+This repository now includes the complete MunimSarthi Brick Kiln / Bhatta ERP backend modules in addition to the earlier MVP modules.
+
+### Core ERP flow
+
+```txt
+Pathai -> Kaccha Stock -> Sukhai -> Bharai -> Phukai -> Pakai -> Nikasi -> Chhantai -> Finished Stock -> Dispatch
+```
+
+### New major API modules
+
+```txt
+/api/v1/seasons
+/api/v1/worker-categories
+/api/v1/brick-categories
+/api/v1/processes
+/api/v1/process-entries
+/api/v1/stock-ledger
+/api/v1/worker-ledger
+/api/v1/payroll
+/api/v1/chambers
+/api/v1/fuel
+/api/v1/dispatches
+/api/v1/customer-ledger
+/api/v1/expenses
+/api/v1/suppliers
+/api/v1/purchases
+/api/v1/supplier-ledger
+/api/v1/vehicles
+/api/v1/cashbook
+/api/v1/reports
+```
+
+### Setup
+
+```bash
+cp .env.example .env
+npm install
+npm run seed:admin
+npm run seed:erp
+npm run dev
+```
+
+### Code check
+
+```bash
+npm run check
+npm test
+```
+
+Full backend documentation is available at:
+
+```txt
+docs/COMPLETE_KILN_ERP_BACKEND_DOCUMENTATION.txt
+```

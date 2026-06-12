@@ -8,4 +8,6 @@ const roles = require('../../constants/roles');
 router.use(protect);
 router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.listPayments);
 router.post('/', permit(roles.ADMIN, roles.MANAGER), [body('customerId').notEmpty(), body('amount').isNumeric()], validate, controller.createPayment);
+router.get('/customer/:customerId', permit(roles.ADMIN, roles.MANAGER), controller.customerPayments);
+router.get('/:id', permit(roles.ADMIN, roles.MANAGER), controller.getPayment);
 module.exports = router;

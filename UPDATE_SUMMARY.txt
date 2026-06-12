@@ -1,0 +1,48 @@
+MUNIMSARTHI BACKEND ERP UPDATE SUMMARY
+======================================
+
+This ZIP contains the updated Node.js/Express/MongoDB backend with the complete Brick Kiln / Bhatta ERP module structure added.
+
+Major additions:
+- Season management
+- Worker category master
+- Brick category master
+- Process master
+- ProcessEntry production core
+- Stock ledger
+- Worker ledger / Peshgi
+- Payroll APIs
+- Chamber management
+- Coal / fuel purchase, stock, consumption
+- Dispatch / challan / invoice data APIs
+- Customer ledger
+- Expense management
+- Supplier management
+- Purchase management
+- Supplier ledger
+- Vehicle management
+- Cashbook
+- Reports
+- Expanded dashboard
+- ERP seed data script
+- .env.example
+- Complete backend documentation in docs/
+
+Checks performed:
+- npm install completed
+- npm run check passed for all JS files
+- node -e "require('./src/app')" passed
+- npm test passed, but the project still has placeholder tests only
+
+Important commands:
+cp .env.example .env
+npm install
+npm run seed:admin
+npm run seed:erp
+npm run dev
+
+Primary new production flow:
+Pathai -> Kaccha Stock -> Sukhai -> Bharai -> Phukai -> Pakai -> Nikasi -> Chhantai -> Finished Stock -> Dispatch
+
+Core new API:
+/api/v1/process-entries

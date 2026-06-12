@@ -1,0 +1,13 @@
+const Supplier = require('./supplier.model');
+const SupplierLedger = require('../supplierLedger/supplierLedger.model');
+const factory = require('../../utils/crudFactory');
+const asyncHandler = require('../../utils/asyncHandler');
+const { success } = require('../../utils/apiResponse');
+const { paginate } = require('../../utils/paginate');
+const { t } = require('../../constants/messages');
+exports.list = factory.list(Supplier, ['supplierType','isActive'], { searchFields: ['name','mobile','gstNo'] });
+exports.get = factory.get(Supplier);
+exports.create = factory.create(Supplier);
+exports.update = factory.update(Supplier);
+exports.deactivate = factory.deactivate(Supplier);
+exports.ledger = asyncHandler(async(req,res)=>{ const result=await paginate(SupplierLedger,{supplierId:req.params.id},req.query); return success(res,t('FETCHED',req.lang),result.items,200,result.meta); });

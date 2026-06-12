@@ -1,0 +1,15 @@
+const router = require('express').Router();
+const { body } = require('express-validator');
+const controller = require('./stockLedger.controller');
+const { protect } = require('../../middlewares/authMiddleware');
+const { permit } = require('../../middlewares/roleMiddleware');
+const validate = require('../../middlewares/validateRequest');
+const roles = require('../../constants/roles');
+router.use(protect);
+router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.list);
+router.get('/summary', permit(roles.ADMIN, roles.MANAGER), controller.summary);
+router.post('/correction', permit(roles.ADMIN, roles.MANAGER), [body('quantity').isNumeric()], validate, controller.correction);
+router.get('/:id', permit(roles.ADMIN, roles.MANAGER), controller.get);
+router.patch('/:id/approve', permit(roles.ADMIN), controller.approve);
+router.patch('/:id/reject', permit(roles.ADMIN), controller.reject);
+module.exports = router;
