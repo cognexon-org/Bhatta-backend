@@ -7,7 +7,7 @@ const validate = require('../../middlewares/validateRequest');
 const roles = require('../../constants/roles');
 router.use(protect);
 router.get('/', permit(roles.ADMIN, roles.MANAGER), controller.list);
-router.post('/', permit(roles.ADMIN), [body('kilnId').notEmpty(), body('name').notEmpty(), body('startDate').notEmpty()], validate, controller.create);
+router.post('/', permit(roles.ADMIN), [body('name').notEmpty(), body('startDate').notEmpty()], validate, controller.create);
 router.get('/:id', permit(roles.ADMIN, roles.MANAGER), controller.get);
 router.patch('/:id', permit(roles.ADMIN), controller.update);
 router.patch('/:id/activate', permit(roles.ADMIN), controller.activate);

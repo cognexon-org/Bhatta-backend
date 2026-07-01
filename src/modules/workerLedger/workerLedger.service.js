@@ -19,7 +19,7 @@ async function createWorkerLedgerEntry(payload) {
   const balanceAfter = Number(worker.currentBalance || 0) + e.delta;
   const rows = await WorkerLedger.create([{ ...payload, session: undefined, kilnId: payload.kilnId || worker.kilnId, seasonId: payload.seasonId || worker.seasonId, managerId: payload.managerId || worker.assignedManagerId, debit: e.debit, credit: e.credit, balanceAfter }], session ? { session } : undefined);
   worker.currentBalance = balanceAfter;
-  await worker.save(session ? { session } : undefined);
+  await Worker.updateOne({ _id: worker._id }, { $set: { currentBalance: balanceAfter } }, session ? { session } : undefined);
   return rows[0];
 }
 

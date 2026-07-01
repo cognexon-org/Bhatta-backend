@@ -8,6 +8,7 @@ const roles = require('../../constants/roles');
 router.use(protect);
 router.get('/types', permit(roles.ADMIN, roles.MANAGER), controller.listTypes);
 router.post('/types', permit(roles.ADMIN), [body('code').notEmpty(), body('name').notEmpty()], validate, controller.createType);
+router.patch('/types/:id', permit(roles.ADMIN), controller.updateType);
 router.get('/stock', permit(roles.ADMIN, roles.MANAGER), controller.stock);
 router.get('/purchases', permit(roles.ADMIN, roles.MANAGER), controller.listPurchases);
 router.post('/purchases', permit(roles.ADMIN, roles.MANAGER), [body().custom((value) => { if (!value.fuelTypeId && !value.fuelCode) throw new Error('fuelTypeId or fuelCode is required'); return true; }), body('quantity').isNumeric()], validate, controller.createPurchase);
