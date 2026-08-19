@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const customerSchema = new mongoose.Schema({
   kilnId: { type: mongoose.Schema.Types.ObjectId, ref: 'Kiln' },
   assignedManagerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -20,4 +21,4 @@ const customerSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 customerSchema.index({ name: 'text', mobile: 'text', beatName: 'text' });
-module.exports = mongoose.model('Customer', customerSchema);
+module.exports = tenantModel('Customer', customerSchema);

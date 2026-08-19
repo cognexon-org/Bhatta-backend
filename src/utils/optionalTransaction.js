@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const { getTenantConnection } = require('../platform/tenantContext');
 
 function isTransactionUnsupported(error) {
   const msg = String(error && error.message ? error.message : error || '');
@@ -6,7 +6,8 @@ function isTransactionUnsupported(error) {
 }
 
 async function runWithOptionalTransaction(work) {
-  const session = await mongoose.startSession();
+  const connection = getTenantConnection();
+  const session = await connection.startSession();
   try {
     let result;
     await session.withTransaction(async () => {
@@ -14,10 +15,11 @@ async function runWithOptionalTransaction(work) {
     });
     return result;
   } catch (error) {
-    if (isTransactionUnsupported(error)) return work(null);
+    const allowFallback = String(process.env.ALLOW_NON_TRANSACTIONAL_FALLBACK || 'false').toLowerCase() === 'true';
+    if (isTransactionUnsupported(error) && allowFallback) return work(null);
     throw error;
   } finally {
-    session.endSession();
+    await session.endSession();
   }
 }
 

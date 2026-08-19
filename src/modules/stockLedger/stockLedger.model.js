@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { STOCK_LEDGER_TYPE, APPROVAL_STATUS } = require('../../constants/enums');
 const stockLedgerSchema = new mongoose.Schema({
   kilnId: { type: mongoose.Schema.Types.ObjectId, ref: 'Kiln', required: true },
@@ -24,4 +25,4 @@ const stockLedgerSchema = new mongoose.Schema({
 stockLedgerSchema.index({ kilnId: 1, seasonId: 1, date: -1 });
 stockLedgerSchema.index({ sourceModule: 1, sourceId: 1 });
 stockLedgerSchema.index({ categoryCode: 1, date: -1 });
-module.exports = mongoose.model('StockLedger', stockLedgerSchema);
+module.exports = tenantModel('StockLedger', stockLedgerSchema);

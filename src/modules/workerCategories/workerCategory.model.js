@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { SALARY_TYPE } = require('../../constants/enums');
 const workerCategorySchema = new mongoose.Schema({
   code: { type: String, required: true, unique: true, uppercase: true, trim: true },
@@ -12,4 +13,4 @@ const workerCategorySchema = new mongoose.Schema({
   sortOrder: { type: Number, default: 0 },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
-module.exports = mongoose.model('WorkerCategory', workerCategorySchema);
+module.exports = tenantModel('WorkerCategory', workerCategorySchema);

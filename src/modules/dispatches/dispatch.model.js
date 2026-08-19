@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { DISPATCH_STATUS } = require('../../constants/enums');
 const dispatchItemSchema = new mongoose.Schema({
   stockCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'StockCategory' },
@@ -33,4 +34,4 @@ const dispatchSchema = new mongoose.Schema({
 }, { timestamps: true });
 dispatchSchema.index({ kilnId: 1, seasonId: 1, dispatchDate: -1 });
 dispatchSchema.index({ orderId: 1 });
-module.exports = mongoose.model('Dispatch', dispatchSchema);
+module.exports = tenantModel('Dispatch', dispatchSchema);

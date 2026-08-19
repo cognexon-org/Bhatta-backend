@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { CUSTOMER_LEDGER_TYPE } = require('../../constants/enums');
 const customerLedgerSchema = new mongoose.Schema({
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
@@ -16,4 +17,4 @@ const customerLedgerSchema = new mongoose.Schema({
 }, { timestamps: true });
 customerLedgerSchema.index({ customerId: 1, date: -1 });
 customerLedgerSchema.index({ kilnId: 1, seasonId: 1, date: -1 });
-module.exports = mongoose.model('CustomerLedger', customerLedgerSchema);
+module.exports = tenantModel('CustomerLedger', customerLedgerSchema);

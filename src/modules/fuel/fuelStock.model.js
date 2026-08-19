@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const fuelStockSchema = new mongoose.Schema({
   kilnId: { type: mongoose.Schema.Types.ObjectId, ref: 'Kiln', required: true },
   seasonId: { type: mongoose.Schema.Types.ObjectId, ref: 'Season' },
@@ -8,4 +9,4 @@ const fuelStockSchema = new mongoose.Schema({
   lastUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 fuelStockSchema.index({ kilnId: 1, seasonId: 1, fuelTypeId: 1 }, { unique: true });
-module.exports = mongoose.model('FuelStock', fuelStockSchema);
+module.exports = tenantModel('FuelStock', fuelStockSchema);

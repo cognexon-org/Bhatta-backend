@@ -1,4 +1,12 @@
 const router = require('express').Router();
+const tenantMiddleware = require('./platform/tenant.middleware');
+
+// Platform control-plane routes use the master DB and a platform API key.
+router.use('/platform', require('./platform/platform.routes'));
+
+// Every ERP route below resolves exactly one tenant before models are accessed.
+router.use(tenantMiddleware);
+router.use('/tenant', require('./platform/tenant.routes'));
 
 // Existing foundation modules
 router.use('/auth', require('./modules/auth/auth.routes'));
@@ -15,6 +23,7 @@ router.use('/udhari', require('./modules/udhari/udhari.routes'));
 router.use('/payments', require('./modules/payments/payment.routes'));
 router.use('/leads', require('./modules/leads/lead.routes'));
 router.use('/voice-remarks', require('./modules/voiceRemarks/voiceRemark.routes'));
+router.use('/voice-entry', require('./modules/voiceEntry/voiceEntry.routes'));
 router.use('/notifications', require('./modules/notifications/notification.routes'));
 router.use('/dashboard', require('./modules/dashboard/dashboard.routes'));
 router.use('/logs', require('./modules/logs/activityLog.routes'));

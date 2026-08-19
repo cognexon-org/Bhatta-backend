@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { VEHICLE_TYPE } = require('../../constants/enums');
 const vehicleSchema = new mongoose.Schema({
   vehicleNumber: { type: String, required: true, uppercase: true, trim: true },
@@ -11,4 +12,4 @@ const vehicleSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 vehicleSchema.index({ vehicleNumber: 1 }, { unique: true });
-module.exports = mongoose.model('Vehicle', vehicleSchema);
+module.exports = tenantModel('Vehicle', vehicleSchema);

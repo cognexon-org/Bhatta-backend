@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { SALARY_TYPE } = require('../../constants/enums');
 
 const workerSchema = new mongoose.Schema({
@@ -38,4 +39,4 @@ workerSchema.index({ kilnId: 1, assignedManagerId: 1, categoryCode: 1 });
 workerSchema.index({ categoryId: 1 });
 workerSchema.index({ name: 'text', mobile: 'text' });
 
-module.exports = mongoose.model('Worker', workerSchema);
+module.exports = tenantModel('Worker', workerSchema);

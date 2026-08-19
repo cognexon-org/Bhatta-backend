@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { PAYMENT_MODE, APPROVAL_STATUS } = require('../../constants/enums');
 
 const expenseSchema = new mongoose.Schema({
@@ -25,4 +26,4 @@ const expenseSchema = new mongoose.Schema({
 
 expenseSchema.index({ kilnId: 1, seasonId: 1, date: -1 });
 expenseSchema.index({ categoryId: 1, categoryCode: 1 });
-module.exports = mongoose.model('Expense', expenseSchema);
+module.exports = tenantModel('Expense', expenseSchema);

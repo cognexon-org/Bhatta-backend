@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { CASH_TRANSACTION_TYPE, PAYMENT_MODE, ACCOUNT_TYPE } = require('../../constants/enums');
 const cashTransactionSchema = new mongoose.Schema({
   kilnId: { type: mongoose.Schema.Types.ObjectId, ref: 'Kiln' },
@@ -17,4 +18,4 @@ const cashTransactionSchema = new mongoose.Schema({
 }, { timestamps: true });
 cashTransactionSchema.index({ kilnId: 1, seasonId: 1, date: -1 });
 cashTransactionSchema.index({ sourceModule: 1, sourceId: 1 });
-module.exports = mongoose.model('CashTransaction', cashTransactionSchema);
+module.exports = tenantModel('CashTransaction', cashTransactionSchema);

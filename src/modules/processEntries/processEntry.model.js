@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { APPROVAL_STATUS } = require('../../constants/enums');
 
 const workerContributionSchema = new mongoose.Schema({
@@ -68,4 +69,4 @@ processEntrySchema.index({ processId: 1, date: -1 });
 processEntrySchema.index({ chamberId: 1, date: -1 });
 processEntrySchema.index({ 'workerContributions.workerId': 1 });
 
-module.exports = mongoose.model('ProcessEntry', processEntrySchema);
+module.exports = tenantModel('ProcessEntry', processEntrySchema);

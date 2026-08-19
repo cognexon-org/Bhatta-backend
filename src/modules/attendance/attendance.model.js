@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { ATTENDANCE_STATUS } = require('../../constants/enums');
 
 const attendanceSchema = new mongoose.Schema({
@@ -28,4 +29,4 @@ attendanceSchema.index({ date: 1, categoryCode: 1 });
 attendanceSchema.index({ managerId: 1, date: 1 });
 attendanceSchema.index({ kilnId: 1, seasonId: 1, date: 1 });
 
-module.exports = mongoose.model('Attendance', attendanceSchema);
+module.exports = tenantModel('Attendance', attendanceSchema);

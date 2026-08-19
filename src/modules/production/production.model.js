@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { PRODUCTION_TYPE } = require('../../constants/enums');
 const productionSchema = new mongoose.Schema({
   kilnId: { type: mongoose.Schema.Types.ObjectId, ref: 'Kiln' }, managerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, date: { type: Date, required: true },
@@ -8,4 +9,4 @@ const productionSchema = new mongoose.Schema({
 }, { timestamps: true });
 productionSchema.index({ date: 1, productionType: 1 });
 productionSchema.index({ managerId: 1, date: 1 });
-module.exports = mongoose.model('Production', productionSchema);
+module.exports = tenantModel('Production', productionSchema);

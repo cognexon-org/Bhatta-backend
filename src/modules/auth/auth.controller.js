@@ -25,8 +25,8 @@ exports.login = asyncHandler(async (req, res) => {
   const { mobile, email, password } = req.body;
   const user = await User.findOne({ $or: [{ mobile }, { email }] }).select('+passwordHash');
   if (!user || !user.isActive || !(await user.comparePassword(password))) return fail(res, t('INVALID_CREDENTIALS', req.lang), 401);
-  const token = signToken({ id: user._id, role: user.role });
-  return success(res, t('LOGIN_SUCCESS', req.lang), { token, user: sanitizeUser(user) });
+  const token = signToken({ id: user._id, role: user.role, tenantId: req.tenant._id, tenantCode: req.tenant.code });
+  return success(res, t('LOGIN_SUCCESS', req.lang), { token, user: sanitizeUser(user), tenant: { id: req.tenant._id, code: req.tenant.code, name: req.tenant.name, voice: req.tenant.voice, features: req.tenant.features } });
 });
 
 exports.me = asyncHandler(async (req, res) => success(res, t('FETCHED', req.lang), sanitizeUser(req.user)));

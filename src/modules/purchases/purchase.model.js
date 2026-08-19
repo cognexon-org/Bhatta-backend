@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { PAYMENT_MODE } = require('../../constants/enums');
 const purchaseSchema = new mongoose.Schema({
   purchaseNo: { type: String, unique: true, sparse: true },
@@ -21,4 +22,4 @@ const purchaseSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 purchaseSchema.index({ kilnId: 1, seasonId: 1, date: -1 });
-module.exports = mongoose.model('Purchase', purchaseSchema);
+module.exports = tenantModel('Purchase', purchaseSchema);

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { BRICK_CATEGORY_GROUP } = require('../../constants/enums');
 const stockCategorySchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
@@ -11,4 +12,4 @@ const stockCategorySchema = new mongoose.Schema({
   sortOrder: { type: Number, default: 0 },
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
-module.exports = mongoose.model('StockCategory', stockCategorySchema);
+module.exports = tenantModel('StockCategory', stockCategorySchema);

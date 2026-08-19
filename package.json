@@ -10,7 +10,10 @@
     "lint": "echo \"Add eslint rules as needed\"",
     "test": "echo \"No tests configured yet\" && exit 0",
     "seed:erp": "node scripts/seedERPDefaults.js",
-    "check": "find src scripts -name \"*.js\" -print0 | xargs -0 -n1 node --check"
+    "check": "find src scripts -name \"*.js\" -print0 | xargs -0 -n1 node --check",
+    "tenant:register": "node scripts/registerTenant.js",
+    "tenant:db-user": "node scripts/createTenantDbUser.js",
+    "voice:test": "node scripts/testVoiceParser.js"
   },
   "keywords": [
     "brick-kiln",

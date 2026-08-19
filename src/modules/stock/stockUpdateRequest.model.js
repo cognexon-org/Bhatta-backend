@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { STOCK_UPDATE_TYPE, APPROVAL_STATUS } = require('../../constants/enums');
 
 const stockUpdateRequestSchema = new mongoose.Schema({
@@ -19,4 +20,4 @@ const stockUpdateRequestSchema = new mongoose.Schema({
 
 stockUpdateRequestSchema.index({ kilnId: 1, seasonId: 1, status: 1 });
 stockUpdateRequestSchema.index({ managerId: 1, status: 1 });
-module.exports = mongoose.model('StockUpdateRequest', stockUpdateRequestSchema);
+module.exports = tenantModel('StockUpdateRequest', stockUpdateRequestSchema);

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { WORKER_LEDGER_TYPE, PAYMENT_MODE } = require('../../constants/enums');
 const workerLedgerSchema = new mongoose.Schema({
   workerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Worker', required: true },
@@ -25,4 +26,4 @@ const workerLedgerSchema = new mongoose.Schema({
 }, { timestamps: true });
 workerLedgerSchema.index({ workerId: 1, date: -1 });
 workerLedgerSchema.index({ kilnId: 1, seasonId: 1, date: -1 });
-module.exports = mongoose.model('WorkerLedger', workerLedgerSchema);
+module.exports = tenantModel('WorkerLedger', workerLedgerSchema);

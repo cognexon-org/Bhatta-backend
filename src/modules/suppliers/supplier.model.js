@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { SUPPLIER_TYPE } = require('../../constants/enums');
 const supplierSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
@@ -12,4 +13,4 @@ const supplierSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 supplierSchema.index({ name: 'text', mobile: 'text' });
-module.exports = mongoose.model('Supplier', supplierSchema);
+module.exports = tenantModel('Supplier', supplierSchema);

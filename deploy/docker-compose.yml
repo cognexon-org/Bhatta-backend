@@ -1,0 +1,73 @@
+services:
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    command:
+      - mongod
+      - --replSet
+      - rs0
+      - --bind_ip
+      - 127.0.0.1
+      - --keyFile
+      - /run/bhatta-secrets/mongo-keyfile
+    volumes:
+      - bhatta_mongo_data:/data/db
+      - ./secrets/mongo-keyfile:/run/bhatta-secrets/mongo-keyfile:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet --host 127.0.0.1
+          --username "$${MONGO_INITDB_ROOT_USERNAME}"
+          --password "$${MONGO_INITDB_ROOT_PASSWORD}"
+          --authenticationDatabase admin
+          --eval 'quit(db.adminCommand({ping:1}).ok ? 0 : 2)'
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  mongo-init-replica:
+    image: mongo:8.0
+    network_mode: host
+    restart: "no"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    entrypoint:
+      - bash
+      - -lc
+      - |
+        set -e
+        mongosh --quiet --host 127.0.0.1 \
+          --username "$${MONGO_INITDB_ROOT_USERNAME}" \
+          --password "$${MONGO_INITDB_ROOT_PASSWORD}" \
+          --authenticationDatabase admin \
+          --eval '
+            try {
+              const status = rs.status();
+              print("Replica set already initialized: " + status.set);
+            } catch (e) {
+              if (e.code !== 94 && e.codeName !== "NotYetInitialized") throw e;
+              printjson(rs.initiate({_id:"rs0", members:[{_id:0, host:"localhost:27017"}]}));
+            }
+          '
+
+  api:
+    build: ..
+    restart: unless-stopped
+    env_file: ../.env
+    network_mode: host
+    depends_on:
+      mongo-init-replica:
+        condition: service_completed_successfully
+
+volumes:
+  bhatta_mongo_data:

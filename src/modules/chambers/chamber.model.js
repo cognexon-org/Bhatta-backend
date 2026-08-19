@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { CHAMBER_STATUS } = require('../../constants/enums');
 const chamberSchema = new mongoose.Schema({
   kilnId: { type: mongoose.Schema.Types.ObjectId, ref: 'Kiln', required: true },
@@ -14,4 +15,4 @@ const chamberSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 chamberSchema.index({ kilnId: 1, chamberNo: 1 }, { unique: true });
-module.exports = mongoose.model('Chamber', chamberSchema);
+module.exports = tenantModel('Chamber', chamberSchema);

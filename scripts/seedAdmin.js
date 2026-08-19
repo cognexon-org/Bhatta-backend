@@ -1,24 +1,26 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
 const connectDB = require('../src/config/db');
+const { closeDB } = require('../src/config/db');
+const { getTenantModel } = require('../src/platform/tenant.model');
+const { getTenantConnection } = require('../src/platform/tenantConnectionManager');
+const { runWithTenant } = require('../src/platform/tenantContext');
 const User = require('../src/modules/users/user.model');
 const StockCategory = require('../src/modules/stock/stockCategory.model');
 const roles = require('../src/constants/roles');
 
-async function seed() {
-  await connectDB();
+async function seedForTenant(tenant) {
   const name = process.env.SEED_ADMIN_NAME || 'Super Admin';
-  const mobile = process.env.SEED_ADMIN_MOBILE || '9999999999';
-  const email = process.env.SEED_ADMIN_EMAIL || 'admin@example.com';
-  const password = process.env.SEED_ADMIN_PASSWORD || 'Admin@12345';
+  const mobile = String(process.env.SEED_ADMIN_MOBILE || '').trim();
+  const email = String(process.env.SEED_ADMIN_EMAIL || '').trim() || undefined;
+  const password = String(process.env.SEED_ADMIN_PASSWORD || '');
+  if (!mobile || !password) throw new Error('SEED_ADMIN_MOBILE and SEED_ADMIN_PASSWORD are required for tenant provisioning');
+  if (password.length < 10) throw new Error('SEED_ADMIN_PASSWORD must be at least 10 characters');
 
   let admin = await User.findOne({ mobile });
   if (!admin) {
-    admin = await User.create({ name, mobile, email, passwordHash: await User.hashPassword(password), role: roles.ADMIN, languagePreference: 'en', isActive: true });
-    console.log('Admin created:', { mobile, email, password });
-  } else {
-    console.log('Admin already exists:', { mobile, email: admin.email });
-  }
+    admin = await User.create({ name, mobile, email, passwordHash: await User.hashPassword(password), role: roles.ADMIN, languagePreference: 'hi', isActive: true });
+    console.log(`[${tenant.code}] Admin created:`, { mobile, email });
+  } else console.log(`[${tenant.code}] Admin already exists:`, { mobile, email: admin.email });
 
   const categories = [
     { name: 'Seedha Kacchi', nameHindi: 'सीधा कच्ची', code: 'SEEDHA_KACCHI' },
@@ -27,10 +29,18 @@ async function seed() {
     { name: 'Tedha Pakki', nameHindi: 'टेढ़ा पक्की', code: 'TEDHA_PAKKI' },
     { name: 'Other', nameHindi: 'अन्य', code: 'OTHER' }
   ];
-  for (const category of categories) {
-    await StockCategory.updateOne({ code: category.code }, { $setOnInsert: category }, { upsert: true });
-  }
-  console.log('Stock categories seeded');
-  await mongoose.disconnect();
+  for (const category of categories) await StockCategory.updateOne({ code: category.code }, { $setOnInsert: category }, { upsert: true });
 }
-seed().catch(async (error) => { console.error(error); await mongoose.disconnect(); process.exit(1); });
+
+async function seed() {
+  await connectDB();
+  const Tenant = getTenantModel();
+  const code = String(process.env.SEED_TENANT_CODE || process.env.TENANT_CODE || '').toUpperCase();
+  if (!code) throw new Error('SEED_TENANT_CODE is required');
+  const tenant = await Tenant.findOne({ code, status: 'ACTIVE' });
+  if (!tenant) throw new Error(`Active tenant not found: ${code}`);
+  const connection = await getTenantConnection(tenant);
+  await runWithTenant({ tenant, connection }, () => seedForTenant(tenant));
+  await closeDB();
+}
+seed().catch(async (error) => { console.error(error); await closeDB().catch(() => {}); process.exit(1); });

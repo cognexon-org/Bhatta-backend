@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { ORDER_STATUS } = require('../../constants/enums');
 const orderSchema = new mongoose.Schema({
   orderNo: { type: String, required: true, unique: true },
@@ -24,4 +25,4 @@ const orderSchema = new mongoose.Schema({
   voiceRemarkId: { type: mongoose.Schema.Types.ObjectId, ref: 'VoiceRemark' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = tenantModel('Order', orderSchema);

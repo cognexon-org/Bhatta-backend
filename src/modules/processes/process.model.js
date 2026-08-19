@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 
 const processSchema = new mongoose.Schema({
   // Final ERP design: Process collection is source of truth. Constants are seed data only.
@@ -17,4 +18,4 @@ const processSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Process', processSchema);
+module.exports = tenantModel('Process', processSchema);

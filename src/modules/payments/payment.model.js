@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { PAYMENT_MODE } = require('../../constants/enums');
 const paymentSchema = new mongoose.Schema({
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
@@ -16,4 +17,4 @@ const paymentSchema = new mongoose.Schema({
   voiceRemarkId: { type: mongoose.Schema.Types.ObjectId, ref: 'VoiceRemark' }
 }, { timestamps: true });
 paymentSchema.index({ customerId: 1, paymentDate: -1 });
-module.exports = mongoose.model('Payment', paymentSchema);
+module.exports = tenantModel('Payment', paymentSchema);

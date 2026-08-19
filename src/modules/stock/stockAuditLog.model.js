@@ -1,3 +1,4 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const stockAuditLogSchema = new mongoose.Schema({ kilnId: { type: mongoose.Schema.Types.ObjectId, ref: 'Kiln' }, stockId: { type: mongoose.Schema.Types.ObjectId, ref: 'Stock' }, stockUpdateRequestId: { type: mongoose.Schema.Types.ObjectId, ref: 'StockUpdateRequest' }, categoryCode: String, previousQuantity: Number, changedQuantity: Number, newQuantity: Number, action: String, performedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, remark: String }, { timestamps: { createdAt: true, updatedAt: false } });
-module.exports = mongoose.model('StockAuditLog', stockAuditLogSchema);
+module.exports = tenantModel('StockAuditLog', stockAuditLogSchema);

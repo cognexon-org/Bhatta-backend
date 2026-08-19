@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 
 const expenseCategorySchema = new mongoose.Schema({
   code: { type: String, required: true, unique: true, uppercase: true, trim: true },
@@ -11,4 +12,4 @@ const expenseCategorySchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
-module.exports = mongoose.model('ExpenseCategory', expenseCategorySchema);
+module.exports = tenantModel('ExpenseCategory', expenseCategorySchema);

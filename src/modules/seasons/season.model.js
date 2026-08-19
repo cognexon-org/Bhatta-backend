@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { SEASON_STATUS } = require('../../constants/enums');
 const seasonSchema = new mongoose.Schema({
   kilnId: { type: mongoose.Schema.Types.ObjectId, ref: 'Kiln', required: true },
@@ -11,4 +12,4 @@ const seasonSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 seasonSchema.index({ kilnId: 1, status: 1 });
-module.exports = mongoose.model('Season', seasonSchema);
+module.exports = tenantModel('Season', seasonSchema);

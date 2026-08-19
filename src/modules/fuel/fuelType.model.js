@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { FUEL_UNIT } = require('../../constants/enums');
 const fuelTypeSchema = new mongoose.Schema({
   code: { type: String, required: true, unique: true, uppercase: true, trim: true },
@@ -8,4 +9,4 @@ const fuelTypeSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
-module.exports = mongoose.model('FuelType', fuelTypeSchema);
+module.exports = tenantModel('FuelType', fuelTypeSchema);

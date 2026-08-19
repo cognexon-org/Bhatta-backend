@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { tenantModel } = require('../../platform/tenantModel');
 const { UDHARI_STATUS } = require('../../constants/enums');
 const udhariSchema = new mongoose.Schema({
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
@@ -22,4 +23,4 @@ const udhariSchema = new mongoose.Schema({
 }, { timestamps: true });
 udhariSchema.index({ dueDate: 1, status: 1 });
 udhariSchema.index({ customerId: 1, status: 1 });
-module.exports = mongoose.model('Udhari', udhariSchema);
+module.exports = tenantModel('Udhari', udhariSchema);
